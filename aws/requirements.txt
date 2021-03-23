@@ -1,0 +1,4 @@
+globus-sdk>=1.7.0
+funcx
+globus_automate_client
+
