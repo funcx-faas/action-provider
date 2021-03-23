@@ -47,3 +47,11 @@ jobs:
          aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 > layer_info.json
          cat layer_info.json
          LAYER_VERSION=$(jq ".Version" layer_info.json)
+
+    - name: Upload Globus Auth Function
+      run: |
+         cp aws/funcx-globus-auth.py ./lambda_function.py
+         zip funcx-globus-auth.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name funcx-globus-auth --zip-file fileb://./funcx-globus-auth.zip
+
