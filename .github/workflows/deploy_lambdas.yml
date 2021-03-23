@@ -55,3 +55,17 @@ jobs:
          rm ./lambda_function.py
          aws lambda update-function-code --function-name funcx-globus-auth --zip-file fileb://./funcx-globus-auth.zip
 
+    - name: Upload Action Introspect Function
+      run: |
+         cp aws/action_introspect.py ./lambda_function.py
+         zip action_introspect.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name action_introspect --zip-file fileb://./action_introspect.zip
+
+    - name: Upload Action Run Function
+      run: |
+         cp aws/funcx-run.py ./lambda_function.py
+         zip funcx-run.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name funcx-run --zip-file fileb://./funcx-run.zip
+
