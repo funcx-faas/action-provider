@@ -69,3 +69,10 @@ jobs:
          rm ./lambda_function.py
          aws lambda update-function-code --function-name funcx-run --zip-file fileb://./funcx-run.zip
 
+    - name: Upload Action Status Function
+      run: |
+         cp aws/action-status.py ./lambda_function.py
+         zip action-status.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name action_status --zip-file fileb://./action-status.zip
+
