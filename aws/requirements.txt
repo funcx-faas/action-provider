@@ -1,4 +1,4 @@
 globus-sdk>=1.7.0
 funcx
 globus_automate_client
-
+globus_action_provider_tools

@@ -20,6 +20,10 @@ def get_secret():
 
 
 def generate_policy(principalId, effect, resource, message="", name=None, identities=[], user_id=None, dependent_token=None):
+    funcx_token = dependent_token.by_resource_server['funcx_service']['access_token']
+    search_token = dependent_token.by_resource_server['search.api.globus.org']['access_token']
+    openid_token = dependent_token.by_resource_server['auth.globus.org']['access_token']
+
     authResponse = {}
     authResponse['principalId'] = principalId
     if effect and resource:
@@ -36,7 +40,9 @@ def generate_policy(principalId, effect, resource, message="", name=None, identi
         'name': name,
         'user_id': user_id,
         'identities': str(identities),
-        'globus_dependent_token': str(dependent_token)
+        'funcx_token': funcx_token,
+        'search_token': search_token,
+        'openid_token': openid_token
     }
     print("AuthResponse", authResponse)
     return authResponse
@@ -51,8 +57,9 @@ def lambda_handler(event, context):
     token = event['headers']['Authorization'].replace("Bearer ", "")
 
     auth_res = auth_client.oauth2_token_introspect(token, include="identities_set")
-    dependent_token = auth_client.oauth2_get_dependent_tokens(token)
-    print("Dependent token ", dependent_token)
+    depends = auth_client.oauth2_get_dependent_tokens(token)
+    print(depends)
+
 
     if not auth_res:
         return generate_policy(None, 'Deny', event['methodArn'], message='User not found')
@@ -66,4 +73,4 @@ def lambda_handler(event, context):
                            name=auth_res["name"],
                            identities=auth_res["identities_set"],
                            user_id=auth_res['sub'],
-                           dependent_token=dependent_token)
+                           dependent_token=depends)

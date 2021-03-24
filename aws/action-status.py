@@ -9,40 +9,44 @@ def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('funcx-actions')
 
-    depends = eval(
-        event['requestContext']['authorizer']['globus_dependent_token'].replace("null",
-                                                                                "None"))
-    print(depends['funcx_service'])
+    auth = AccessTokenAuthorizer(event['requestContext']['authorizer']['funcx_token'])
+    search_auth = AccessTokenAuthorizer(
+        event['requestContext']['authorizer']['search_token'])
+    openid_auth = AccessTokenAuthorizer(
+        event['requestContext']['authorizer']['openid_token'])
 
-    token = depends['funcx_service']['access_token']
-    auth = AccessTokenAuthorizer(token)
-
-    search_token = depends['search.api.globus.org']['access_token']
-    search_auth = AccessTokenAuthorizer(search_token)
-
-    openid_token = depends['auth.globus.org']['access_token']
-    openid_auth = AccessTokenAuthorizer(openid_token)
     FuncXClient.TOKEN_DIR = '/tmp'
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
                       openid_authorizer=openid_auth)
 
     parameters = event['pathParameters']['proxy']
-    (flow_id, _) = parameters.split('/')
+    (action_id, _) = parameters.split('/')
     response = table.query(
-        KeyConditionExpression=Key('flow-id').eq(flow_id)
+        KeyConditionExpression=Key('action-id').eq(action_id)
     )
-    print(response['Items'][0])
-    print(response['Items'][0]['tasks'][0])
+    assert "Items" in response
+    assert len(response['Items']) == 1
+
+    action_record = response['Items'][0]
+    print(action_record)
+
     result = None
     try:
-        result = fxc.get_result(response['Items'][0]['tasks'][0])
+        result = fxc.get_result(action_record['tasks'][0]['task_id'])
     except Exception as eek:
         result = str(eek)
 
     print("---->", result)
-    # TODO implement
+
+    result = {
+        "action_id": action_id,
+        'status': 'SUCCEEDED',
+        'display_status': 'Function Results Received',
+        'details': result
+    }
+
     print(event)
     return {
         'statusCode': 200,
-        'body': result
+        'body': json.dumps(result)
     }
