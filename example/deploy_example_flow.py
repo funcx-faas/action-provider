@@ -4,7 +4,7 @@ import json
 import globus_automate_client
 
 
-def flow_def(flow_permissions):
+def flow_def(flow_permissions, endpoint, sum_function, hello_world_function):
     return GlobusAutomateFlowDef(
         title="FuncX Example",
         description="Show how to invoke FuncX",
@@ -20,22 +20,22 @@ def flow_def(flow_permissions):
                     "ActionScope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
                     "Parameters": {
                         "tasks": [{
-                            "endpoint": "4b116d3c-1703-4f8f-9f6f-39921e5864df",
-                            "function": "18f8416a-edbd-4f3b-82ef-3c5697a0697a",
+                            "endpoint": endpoint,
+                            "function": sum_function,
                             "payload": {
                                 "items": [1, 2, 3, 4]
                             }
                         },
                             {
-                                "endpoint": "4b116d3c-1703-4f8f-9f6f-39921e5864df",
-                                "function": "18f8416a-edbd-4f3b-82ef-3c5697a0697a",
+                                "endpoint": endpoint,
+                                "function": sum_function,
                                 "payload": {
                                     "items": [10, 20, 30, 40]
                                 }
                             },
                             {
-                                "endpoint": "4b116d3c-1703-4f8f-9f6f-39921e5864df",
-                                "function": "74c03996-c4b0-471f-b26b-b596edbf80f9",
+                                "endpoint": endpoint,
+                                "function": hello_world_function,
                                 "payload": {}
                             }
                         ]
@@ -50,6 +50,17 @@ def flow_def(flow_permissions):
         }
     )
 
+from funcx.sdk.client import FuncXClient
+fxc = FuncXClient()
+
+def hello_world():
+    return "Hello World!"
+
+
+def funcx_sum(items):
+    import time
+    time.sleep(15)
+    return sum(items)
 
 with open(".automatesecrets", 'r') as f:
     globus_secrets = json.load(f)
@@ -64,10 +75,14 @@ flow = flow_def(flow_permissions={
     "admin_permissions": [
         "urn:globus:groups:id:5fc63928-3752-11e8-9c6f-0e00fd09bf20"
     ],
-})
+},
+    endpoint="4b116d3c-1703-4f8f-9f6f-39921e5864df",
+    sum_function=fxc.register_function(funcx_sum),
+    hello_world_function=fxc.register_function(hello_world))
+
 print(flow.flow_definition)
 
-mdf_flow = GlobusAutomateFlow.from_flow_def(flows_client,
-                                            flow_def=flow)
+example_flow = GlobusAutomateFlow.from_flow_def(flows_client,
+                                                flow_def=flow)
 
-mdf_flow.save_flow("mdf_flow_info.json")
+example_flow.save_flow("example_flow_info.json")
