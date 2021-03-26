@@ -30,19 +30,59 @@ def lambda_handler(event, context):
     action_record = response['Items'][0]
     print(action_record)
 
-    result = None
-    try:
-        result = fxc.get_result(action_record['tasks'][0]['task_id'])
-    except Exception as eek:
-        result = str(eek)
+    # Find the taskIDs where the results are not yet in
+    running_tasks = list(filter(lambda task_id: bool(task_id),
+                                [key if not action_record['tasks'][key][
+                                    'result'] else None
+                                 for key in action_record['tasks'].keys()]))
 
-    print("---->", result)
+    failure = None
+    if running_tasks:
+        for task in running_tasks:
+            result = None
+            try:
+                result = fxc.get_result(task)
+                print("---->", result)
+
+            except Exception as eek:
+                print("Faiulure ", type(eek), eek.args)
+                if str(eek) == 'waiting-for-ep':
+                    result = None
+                else:
+                    failure = eek
+
+            if result:
+                action_record['tasks'][task]['result'] = result
+
+        update_response = table.update_item(
+            Key={
+                'action-id': action_id
+            },
+            UpdateExpression="set tasks=:t",
+            ExpressionAttributeValues={
+                ':t': action_record['tasks']
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        print(update_response)
+        print(failure)
+        if failure:
+            status = "FAILED"
+            details = failure
+        else:
+            status = "ACTIVE"
+        details = None
+    else:
+        status = "SUCCEEDED"
+        details = [str(action_record['tasks'][tt]['result']) for tt in
+                   action_record['tasks'].keys()]
 
     result = {
         "action_id": action_id,
-        'status': 'SUCCEEDED',
+        'status': status,
         'display_status': 'Function Results Received',
-        'details': result
+        'details': details
     }
 
     print(event)

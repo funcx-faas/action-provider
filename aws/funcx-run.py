@@ -29,26 +29,30 @@ def lambda_handler(event, context):
     body = json.loads(event['body'])
 
     action_id = str(uuid.uuid4())
+    monitor_by = body['monitor_by'] if 'monitor_by' in body else None
+    manage_by = body['manage_by'] if 'manage_by' in body else None
+
     result = {
         "action_id": action_id,
         'status': 'ACTIVE',
         'display_status': 'Function Submitted',
         'details': None,
-        'monitor_by': body['monitor_by'],
-        'manage_by': body['manage_by'],
+        'monitor_by': monitor_by,
+        'manage_by': manage_by,
         'start_time': now_isoformat(),
     }
-    tasks = []
+    tasks = {}
 
-    task = body['body']['tasks'][0]
-    print(task)
-    task_id = fxc.run(endpoint_id=task['endpoint'], function_id=task['function'])
-    print("Funcx", task_id)
+    for task in body['body']['tasks']:
+        print(task)
 
-    tasks.append({
-        "task_id": task_id,
-        "result": None
-    })
+        task_id = fxc.run(endpoint_id=task['endpoint'], function_id=task['function'], **task['payload'])
+
+        print("Funcx", task_id)
+
+        tasks[task_id] = {
+            "result": None
+        }
 
     response = table.put_item(
         Item={
