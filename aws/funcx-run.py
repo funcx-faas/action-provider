@@ -42,22 +42,23 @@ def lambda_handler(event, context):
         'start_time': now_isoformat(),
     }
     tasks = {}
+    batch = fxc.create_batch()
 
     for task in body['body']['tasks']:
         print(task)
+        batch.add(endpoint_id=task['endpoint'], function_id=task['function'],
+                  **task['payload'])
 
-        task_id = fxc.run(endpoint_id=task['endpoint'], function_id=task['function'], **task['payload'])
+    batch_res = fxc.batch_run(batch)
+    print(batch_res)
 
-        print("Funcx", task_id)
-
-        tasks[task_id] = {
-            "result": None
-        }
-
+    # Create a dynamo record where the primary key is this action's ID
+    # Tasks is a dict by task_id and contains the eventual results from their
+    # execution. Where there are no more None results then the action is complete
     response = table.put_item(
         Item={
             'action-id': action_id,
-            'tasks': tasks
+            'tasks': {task_id: {"result": None} for task_id in batch_res}
         }
     )
     print("Dynamo", response)
