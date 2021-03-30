@@ -32,7 +32,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
         profile_name: default
-        project_name: MDFConnect
+        project_name: FuncXActionProvider
         runtime: python3.7
 
     - name: Create dependency layer

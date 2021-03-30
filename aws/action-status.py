@@ -8,6 +8,7 @@ from funcx.sdk.client import FuncXClient
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('funcx-actions')
+    print(event)
 
     auth = AccessTokenAuthorizer(event['requestContext']['authorizer']['funcx_token'])
     search_auth = AccessTokenAuthorizer(
@@ -19,8 +20,8 @@ def lambda_handler(event, context):
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
                       openid_authorizer=openid_auth)
 
-    parameters = event['pathParameters']['proxy']
-    (action_id, _) = parameters.split('/')
+    action_id = event['pathParameters']['action-id']
+
     response = table.query(
         KeyConditionExpression=Key('action-id').eq(action_id)
     )

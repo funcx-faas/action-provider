@@ -16,7 +16,7 @@ def flow_def(flow_permissions, endpoint, sum_function, hello_world_function):
             "States": {
                 "StartSubmission": {
                     "Type": "Action",
-                    "ActionUrl": "https://ippg79abte.execute-api.us-east-1.amazonaws.com/dev",
+                    "ActionUrl": " https://b6vr4fptui.execute-api.us-east-1.amazonaws.com/test",
                     "ActionScope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
                     "Parameters": {
                         "tasks": [{
