@@ -139,4 +139,5 @@ cython_debug/
 
 .automatesecrets
 example_flow_info.json
-
+.python-version
+.idea
