@@ -21,7 +21,8 @@ def lambda_handler(event, context):
 
     FuncXClient.TOKEN_DIR = '/tmp'
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
-                      openid_authorizer=openid_auth)
+                      openid_authorizer=openid_auth,
+                      use_offprocess_checker=False)
 
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('funcx-actions')
