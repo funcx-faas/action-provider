@@ -44,7 +44,7 @@ jobs:
 
          #zip files into current directory
          zip -r funcxLayer.zip ./python
-         aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 > layer_info.json
+         aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 python3.8 > layer_info.json
          cat layer_info.json
          LAYER_VERSION=$(jq ".Version" layer_info.json)
 
