@@ -18,7 +18,8 @@ def lambda_handler(event, context):
 
     FuncXClient.TOKEN_DIR = '/tmp'
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
-                      openid_authorizer=openid_auth)
+                      openid_authorizer=openid_auth,
+                      use_offprocess_checker=False)
 
     action_id = event['pathParameters']['action-id']
 
