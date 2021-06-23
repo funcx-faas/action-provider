@@ -42,6 +42,11 @@ jobs:
          #install all dependencies as defined by requirements.txt in the aws directory
          pip3 install --use-deprecated=legacy-resolver  -r aws/requirements.txt -t ./python
 
+         # There is a problem with the parsl library in lambda. We have a slimmed
+         # down version to replace it
+         rm -Rf python/parsl*
+         pip3 install --use-deprecated=legacy-resolver -t python ./slim-parsl
+
          #zip files into current directory
          zip -r funcxLayer.zip ./python
          aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 python3.8 > layer_info.json

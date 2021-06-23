@@ -3,9 +3,21 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer
 from funcx.sdk.client import FuncXClient
+from funcx.utils.errors import TaskPending
+
+from funcx.sdk import VERSION as SDK_VERSION
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return int(obj)
+        return super(DecimalEncoder, self).default(obj)
 
 
 def lambda_handler(event, context):
+    print("---->", SDK_VERSION)
+
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('funcx-actions')
     print(event)
@@ -32,11 +44,12 @@ def lambda_handler(event, context):
     action_record = response['Items'][0]
     print(action_record)
 
+    task_results = json.loads(action_record['tasks'])
     # Find the taskIDs where the results are not yet in
     running_tasks = list(filter(lambda task_id: bool(task_id),
-                                [key if not action_record['tasks'][key][
+                                [key if not task_results[key][
                                     'result'] else None
-                                 for key in action_record['tasks'].keys()]))
+                                 for key in task_results.keys()]))
 
     failure = None
     if running_tasks:
@@ -44,17 +57,18 @@ def lambda_handler(event, context):
             result = None
             try:
                 result = fxc.get_result(task)
-                print("---->", result)
+                print("---->", result, type(result))
 
-            except Exception as eek:
-                print("Faiulure ", type(eek), eek.args)
-                if str(eek) == 'waiting-for-ep':
-                    result = None
-                else:
-                    failure = eek
+            except TaskPending as eek:
+                print("Faiulure ", eek)
+                result = None
+            except Exception as eek2:
+                print("Detected an exception: ", eek2)
+                failure = str(eek2)
+                result = None
 
             if result:
-                action_record['tasks'][task]['result'] = result
+                task_results[task]['result'] = result
 
         update_response = table.update_item(
             Key={
@@ -62,23 +76,28 @@ def lambda_handler(event, context):
             },
             UpdateExpression="set tasks=:t",
             ExpressionAttributeValues={
-                ':t': action_record['tasks']
+                ':t': json.dumps(task_results, cls=DecimalEncoder)
             },
             ReturnValues="UPDATED_NEW"
         )
 
-        print(update_response)
-        print(failure)
+        print("updated_response", update_response)
+        print("failure", failure)
         if failure:
             status = "FAILED"
             details = failure
+            display_status = failure
         else:
             status = "ACTIVE"
-        details = None
+            details = None
     else:
         status = "SUCCEEDED"
-        details = [str(action_record['tasks'][tt]['result']) for tt in
-                   action_record['tasks'].keys()]
+        details = json.dumps(task_results)
+        display_status = "Function Results Received"
+        print("Success -> ", details)
+
+        # details = [str(action_record['tasks'][tt]['result']) for tt in
+        #           action_record['tasks'].keys()]
 
     result = {
         "action_id": action_id,
@@ -87,7 +106,7 @@ def lambda_handler(event, context):
         'details': details
     }
 
-    print(event)
+    print("Status result", result)
     return {
         'statusCode': 200,
         'body': json.dumps(result)
