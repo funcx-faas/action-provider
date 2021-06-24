@@ -59,7 +59,7 @@ def lambda_handler(event, context):
     response = table.put_item(
         Item={
             'action-id': action_id,
-            'tasks': {task_id: {"result": None} for task_id in batch_res}
+            'tasks': json.dumps({task_id: {"result": None} for task_id in batch_res})
         }
     )
     print("Dynamo", response)
