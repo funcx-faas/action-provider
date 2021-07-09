@@ -92,7 +92,7 @@ def lambda_handler(event, context):
             details = None
     else:
         status = "SUCCEEDED"
-        details = json.dumps(task_results)
+        details = task_results
         display_status = "Function Results Received"
         print("Success -> ", details)
 
