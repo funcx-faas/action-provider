@@ -96,8 +96,10 @@ def lambda_handler(event, context):
         display_status = "Function Results Received"
         print("Success -> ", details)
 
-        # details = [str(action_record['tasks'][tt]['result']) for tt in
-        #           action_record['tasks'].keys()]
+        details = [action_record['tasks'][tt]['result'] for tt in
+                  action_record['tasks'].keys()]
+
+        print("List results ->", details)
 
     result = {
         "action_id": action_id,
