@@ -1,5 +1,7 @@
 import json
 import boto3
+import decimal
+
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer
 from funcx.sdk.client import FuncXClient
