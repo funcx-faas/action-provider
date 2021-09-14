@@ -98,7 +98,7 @@ def lambda_handler(event, context):
                                 [key if not task_results[key][
                                     'result'] else None
                                  for key in task_results.keys()]))
-    if running_tasks:
+    if not running_tasks:
         status = "SUCCEEDED"
         details = task_results
         display_status = "Function Results Received"
