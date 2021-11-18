@@ -72,6 +72,14 @@ def lambda_handler(event, context):
             if result:
                 task_results[task]['result'] = result
 
+    # Now check again to see if everything is done
+    running_tasks = list(filter(lambda task_id: bool(task_id),
+                                [key if not task_results[key][
+                                    'result'] else None
+                                 for key in task_results.keys()]))
+
+    # Update the Tables entry if there are still running tasks
+    if running_tasks:
         update_response = table.update_item(
             Key={
                 'action-id': action_id
@@ -93,12 +101,8 @@ def lambda_handler(event, context):
             status = "ACTIVE"
             details = None
 
-    # Now check again to see if everything is done
-    running_tasks = list(filter(lambda task_id: bool(task_id),
-                                [key if not task_results[key][
-                                    'result'] else None
-                                 for key in task_results.keys()]))
-    if not running_tasks:
+    # Return SUCCEEDED if there are no tasks still running
+    else:
         status = "SUCCEEDED"
         details = task_results
         display_status = "Function Results Received"
