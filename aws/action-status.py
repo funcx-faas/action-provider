@@ -118,7 +118,7 @@ def lambda_handler(event, context):
     result = {
         "action_id": action_id,
         'status': status,
-        'display_status': 'Function Results Received',
+        'display_status': display_status,
         'details': details
     }
 
