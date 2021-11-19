@@ -6,9 +6,6 @@ on:
   #when there is a push to the main
   push:
     branches: [ serverless ]
-  #when there is a pull to the main
-  pull_request:
-    branches: [ serverless ]
 
 jobs:
   build:
