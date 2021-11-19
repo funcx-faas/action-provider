@@ -99,6 +99,7 @@ def lambda_handler(event, context):
             display_status = failure
         else:
             status = "ACTIVE"
+            display_status = "Function Still Active"
             details = None
 
     # Return SUCCEEDED if there are no tasks still running
