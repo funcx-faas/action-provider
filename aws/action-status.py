@@ -60,17 +60,13 @@ def lambda_handler(event, context):
             try:
                 result = fxc.get_result(task)
                 print("---->", result, type(result))
-
             except TaskPending as eek:
                 print("Faiulure ", eek)
-                result = None
             except Exception as eek2:
                 print("Detected an exception: ", eek2)
                 failure = str(eek2)
-                result = None
 
-            if result:
-                task_results[task]['result'] = result
+            task_results[task]['result'] = result
 
         update_response = table.update_item(
             Key={
