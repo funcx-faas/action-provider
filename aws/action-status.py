@@ -50,23 +50,27 @@ def lambda_handler(event, context):
     # Find the taskIDs where the results are not yet in
     running_tasks = list(filter(lambda task_id: bool(task_id),
                                 [key if not task_results[key][
-                                    'result'] else None
+                                    'completed'] else False
                                  for key in task_results.keys()]))
 
     failure = None
     if running_tasks:
         for task in running_tasks:
             result = None
+            completed = False
             try:
                 result = fxc.get_result(task)
                 print("---->", result, type(result))
+                completed = True
             except TaskPending as eek:
-                print("Faiulure ", eek)
+                print("Failure ", eek)
             except Exception as eek2:
                 print("Detected an exception: ", eek2)
                 failure = str(eek2)
-
+                completed = True
+            
             task_results[task]['result'] = result
+            task_results[task]['completed'] = completed
 
         update_response = table.update_item(
             Key={
@@ -92,7 +96,7 @@ def lambda_handler(event, context):
     # Now check again to see if everything is done
     running_tasks = list(filter(lambda task_id: bool(task_id),
                                 [key if not task_results[key][
-                                    'result'] else None
+                                    'completed'] else False
                                  for key in task_results.keys()]))
     if not running_tasks:
         status = "SUCCEEDED"
