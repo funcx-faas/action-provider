@@ -42,7 +42,7 @@ def lambda_handler(event, context):
         'manage_by': manage_by,
         'start_time': now_isoformat(),
     }
-    tasks = {}
+
     batch = fxc.create_batch()
 
     for task in body['body']['tasks']:
