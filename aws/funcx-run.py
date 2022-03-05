@@ -42,7 +42,7 @@ def lambda_handler(event, context):
         'manage_by': manage_by,
         'start_time': now_isoformat(),
     }
-    tasks = {}
+
     batch = fxc.create_batch()
 
     for task in body['body']['tasks']:
@@ -59,7 +59,7 @@ def lambda_handler(event, context):
     response = table.put_item(
         Item={
             'action-id': action_id,
-            'tasks': json.dumps({task_id: {"result": None} for task_id in batch_res})
+            'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res})
         }
     )
     print("Dynamo", response)
