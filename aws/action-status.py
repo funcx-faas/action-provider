@@ -84,13 +84,14 @@ def lambda_handler(event, context):
         )
 
         print("updated_response", update_response)
-        print("failure", failure)
+        
         if failure:
             status = "FAILED"
             details = failure
             display_status = failure
         else:
             status = "ACTIVE"
+            display_status = "Task Pending"
             details = None
 
     # Now check again to see if everything is done
@@ -114,7 +115,7 @@ def lambda_handler(event, context):
     result = {
         "action_id": action_id,
         'status': status,
-        'display_status': 'Function Results Received',
+        'display_status': display_status,
         'details': details
     }
 
