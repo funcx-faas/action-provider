@@ -1,6 +1,7 @@
 import json
 import boto3
 import decimal
+import traceback
 
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer
@@ -60,13 +61,12 @@ def lambda_handler(event, context):
             completed = False
             try:
                 result = fxc.get_result(task)
-                print("---->", result, type(result))
                 completed = True
             except TaskPending as eek:
-                print("Failure ", eek)
+                print("Pending ", eek)
             except Exception as eek2:
-                print("Detected an exception: ", eek2)
-                failure = str(eek2)
+                failure = traceback.format_exc()
+                print("Detected an exception: ", failure)
                 completed = True
             
             task_results[task]['result'] = result
