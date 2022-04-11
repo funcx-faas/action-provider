@@ -42,16 +42,29 @@ def lambda_handler(event, context):
         'manage_by': manage_by,
         'start_time': now_isoformat(),
     }
-    tasks = {}
-    batch = fxc.create_batch()
 
-    for task in body['body']['tasks']:
-        print(task)
-        batch.add(endpoint_id=task['endpoint'], function_id=task['function'],
-                  **task['payload'])
+    status_code = 202
 
-    batch_res = fxc.batch_run(batch)
-    print(batch_res)
+    try:
+        batch = fxc.create_batch()
+
+        for task in body['body']['tasks']:
+            print(task)
+            payload = task.get('payload', None)
+            if payload:
+                batch.add(endpoint_id=task['endpoint'], function_id=task['function'],
+                        **task['payload'])
+            else:
+                batch.add(endpoint_id=task['endpoint'], function_id=task['function'])
+
+        batch_res = fxc.batch_run(batch)
+        print({'action_id': action_id, 'tasks': batch_res})
+        result['details'] = batch_res
+    except Exception as eek:
+        result['status'] = 'FAILED'
+        result['display_status'] = 'Failed to submit tasks'
+        result['details'] = str(eek)
+        status_code = 400
 
     # Create a dynamo record where the primary key is this action's ID
     # Tasks is a dict by task_id and contains the eventual results from their
@@ -59,11 +72,11 @@ def lambda_handler(event, context):
     response = table.put_item(
         Item={
             'action-id': action_id,
-            'tasks': json.dumps({task_id: {"result": None} for task_id in batch_res})
+            'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res})
         }
     )
     print("Dynamo", response)
     return {
-        'statusCode': 202,
+        'statusCode': status_code,
         'body': json.dumps(result)
     }
