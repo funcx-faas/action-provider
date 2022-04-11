@@ -54,6 +54,9 @@ def lambda_handler(event, context):
                                     'completed'] else False
                                  for key in task_results.keys()]))
 
+    status = "SUCCEEDED"
+    display_status = "Function Results Received"
+
     failure = None
     if running_tasks:
         for task in running_tasks:
@@ -66,6 +69,7 @@ def lambda_handler(event, context):
                 print("Pending ", eek)
             except Exception as eek2:
                 failure = traceback.format_exc()
+                result = failure
                 print("Detected an exception: ", eek2)
                 completed = True
             
@@ -83,15 +87,14 @@ def lambda_handler(event, context):
             ReturnValues="UPDATED_NEW"
         )
 
-        display_status = "Function Active"
         print("updated_response", update_response)
         if failure:
             print("FAILED ", failure)
             status = "FAILED"
-            details = failure
             display_status = "Function Failed"
         else:
             status = "ACTIVE"
+            display_status = "Function Active"
             details = None
 
     # Now check again to see if everything is done
@@ -100,11 +103,6 @@ def lambda_handler(event, context):
                                     'completed'] else False
                                  for key in task_results.keys()]))
     if not running_tasks:
-        status = "SUCCEEDED"
-        details = task_results
-        display_status = "Function Results Received"
-        print("Success -> ", details)
-
         all_res = [task_results[tt]['result'] for tt in
                   task_results.keys()]
 
