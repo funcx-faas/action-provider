@@ -66,7 +66,7 @@ def lambda_handler(event, context):
                 print("Pending ", eek)
             except Exception as eek2:
                 failure = traceback.format_exc()
-                print("Detected an exception: ", failure)
+                print("Detected an exception: ", eek2)
                 completed = True
             
             task_results[task]['result'] = result
@@ -83,12 +83,13 @@ def lambda_handler(event, context):
             ReturnValues="UPDATED_NEW"
         )
 
+        display_status = "Function Active"
         print("updated_response", update_response)
-        print("failure", failure)
         if failure:
+            print("FAILED ", failure)
             status = "FAILED"
             details = failure
-            display_status = failure
+            display_status = "Function Failed"
         else:
             status = "ACTIVE"
             details = None
@@ -114,7 +115,7 @@ def lambda_handler(event, context):
     result = {
         "action_id": action_id,
         'status': status,
-        'display_status': 'Function Results Received',
+        'display_status': display_status,
         'details': details
     }
 
