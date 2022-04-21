@@ -33,6 +33,7 @@ def lambda_handler(event, context):
     monitor_by = body['monitor_by'] if 'monitor_by' in body else None
     manage_by = body['manage_by'] if 'manage_by' in body else None
 
+    status_code = 202
     action_status = 'ACTIVE'
     display_status = 'Function Submitted'
     details = None
@@ -57,10 +58,11 @@ def lambda_handler(event, context):
         )
         print("Dynamo", response)
     except Exception as eek:
-        print("Exception", str(eek))
+        print("FAILED ", str(eek))
         action_status = 'FAILED'
         display_status = str(eek)
         details = str(eek)
+        status_code = 400
 
     result = {
         "action_id": action_id,
@@ -73,7 +75,8 @@ def lambda_handler(event, context):
     }
 
     print('Submit result', result)
+
     return {
-        'statusCode': 202,
+        'statusCode': status_code,
         'body': json.dumps(result)
     }
