@@ -45,6 +45,7 @@ def lambda_handler(event, context):
 
     status_code = 202
 
+    batch_res = None
     try:
         batch = fxc.create_batch()
 
@@ -61,6 +62,7 @@ def lambda_handler(event, context):
         print({'action_id': action_id, 'tasks': batch_res})
         result['details'] = batch_res
     except Exception as eek:
+        print('FAILED ', eek)
         result['status'] = 'FAILED'
         result['display_status'] = 'Failed to submit tasks'
         result['details'] = str(eek)
@@ -69,13 +71,16 @@ def lambda_handler(event, context):
     # Create a dynamo record where the primary key is this action's ID
     # Tasks is a dict by task_id and contains the eventual results from their
     # execution. Where there are no more None results then the action is complete
-    response = table.put_item(
-        Item={
-            'action-id': action_id,
-            'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res})
-        }
-    )
-    print("Dynamo", response)
+    if batch_res:
+        response = table.put_item(
+            Item={
+                'action-id': action_id,
+                'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res})
+            }
+        )
+        print("Dynamo", response)
+    
+    print("Status result", result)
     return {
         'statusCode': status_code,
         'body': json.dumps(result)
