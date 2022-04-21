@@ -88,6 +88,7 @@ def lambda_handler(event, context):
         )
 
         print("updated_response", update_response)
+
         if failure:
             print("FAILED ", failure)
             status = "FAILED"
