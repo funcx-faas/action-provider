@@ -1,3 +1,4 @@
+import sys
 import json
 import boto3
 import decimal
@@ -49,10 +50,12 @@ def lambda_handler(event, context):
 
     task_results = json.loads(action_record['tasks'])
     # Find the taskIDs where the results are not yet in
-    running_tasks = list(filter(lambda task_id: bool(task_id),
-                                [key if not task_results[key][
-                                    'completed'] else False
-                                 for key in task_results.keys()]))
+    running_tasks = None
+    if task_results:
+        running_tasks = list(filter(lambda task_id: bool(task_id),
+                                    [key if not task_results[key][
+                                        'completed'] else False
+                                     for key in task_results.keys()]))
 
     status = "SUCCEEDED"
     display_status = "Function Results Received"
@@ -76,22 +79,29 @@ def lambda_handler(event, context):
             task_results[task]['result'] = result
             task_results[task]['completed'] = completed
 
-        update_response = table.update_item(
-            Key={
-                'action-id': action_id
-            },
-            UpdateExpression="set tasks=:t",
-            ExpressionAttributeValues={
-                ':t': json.dumps(task_results, cls=DecimalEncoder)
-            },
-            ReturnValues="UPDATED_NEW"
-        )
+        try:
+            update_response = table.update_item(
+                Key={
+                    'action-id': action_id
+                },
+                UpdateExpression="set tasks=:t",
+                ExpressionAttributeValues={
+                    ':t': json.dumps(task_results, cls=DecimalEncoder)
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        except Exception as eek:
+            print("Failed to update dynamodb: ", eek)
+            status = "FAILED"
+            display_status = "Function Failed"
+            failure = "Failed to record function result: " + str(eek)
 
         print("updated_response", update_response)
         if failure:
             print("FAILED ", failure)
             status = "FAILED"
             display_status = "Function Failed"
+            details = failure
         else:
             status = "ACTIVE"
             display_status = "Function Active"
