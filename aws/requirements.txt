@@ -1,4 +1,4 @@
 globus-sdk>=1.7.0
-funcx==0.3.4
-funcx-endpoint==0.3.4
+funcx==0.3.9
+funcx-endpoint==0.3.9
 globus_automate_client
