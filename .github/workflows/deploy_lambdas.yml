@@ -49,6 +49,7 @@ jobs:
          aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 python3.8 > layer_info.json
          cat layer_info.json
          LAYER_VERSION=$(jq ".Version" layer_info.json)
+         LAYER_VERSION_ARN=$(jq ".LayerVersionArn" layer_info.json)
 
     - name: Upload Globus Auth Function
       run: |
@@ -56,6 +57,7 @@ jobs:
          zip funcx-globus-auth.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name funcx-globus-auth --zip-file fileb://./funcx-globus-auth.zip
+         aws lambda update-function-configuration --function-name funcx-globus-auth --layers $LAYER_VERSION_ARN
 
     - name: Upload Action Introspect Function
       run: |
@@ -63,6 +65,7 @@ jobs:
          zip action_introspect.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name action_introspect --zip-file fileb://./action_introspect.zip
+         aws lambda update-function-configuration --function-name action_introspect --layers $LAYER_VERSION_ARN
 
     - name: Upload Action Run Function
       run: |
@@ -70,6 +73,7 @@ jobs:
          zip funcx-run.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name funcx-run --zip-file fileb://./funcx-run.zip
+         aws lambda update-function-configuration --function-name funcx-run --layers $LAYER_VERSION_ARN
 
     - name: Upload Action Status Function
       run: |
@@ -77,4 +81,5 @@ jobs:
          zip action-status.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name action_status --zip-file fileb://./action-status.zip
+         aws lambda update-function-configuration --function-name action_status --layers $LAYER_VERSION_ARN
 
