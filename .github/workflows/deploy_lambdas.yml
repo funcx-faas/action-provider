@@ -52,12 +52,12 @@ jobs:
          LAYER_VERSION_ARN=$(jq ".LayerVersionArn" layer_info.json)
          echo "LAYER_VERSION_ARN=$LAYER_VERSION_ARN" >> $GITHUB_ENV
 
-    # - name: Upload Globus Auth Function
-    #   run: |
-    #      cp aws/funcx-globus-auth.py ./lambda_function.py
-    #      zip funcx-globus-auth.zip ./lambda_function.py
-    #      rm ./lambda_function.py
-    #      aws lambda update-function-code --function-name funcx-globus-auth --zip-file fileb://./funcx-globus-auth.zip
+    - name: Upload Globus Auth Function
+      run: |
+         cp aws/funcx-globus-auth.py ./lambda_function.py
+         zip funcx-globus-auth.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name funcx-globus-auth --zip-file fileb://./funcx-globus-auth.zip
 
     - name: Upload Action Introspect Function
       run: |
@@ -65,27 +65,21 @@ jobs:
          zip action_introspect.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name action_introspect --zip-file fileb://./action_introspect.zip
-         aws lambda wait function-updated --function-name action_introspect > wait.json
-         cat wait.json
-         echo ${{ env.LAYER_VERSION_ARN }}
-         aws lambda update-function-configuration --function-name action_introspect --layers ${{ env.LAYER_VERSION_ARN }} > update_info.json
-         cat update_info.json
+         aws lambda update-function-configuration --function-name action_introspect --layers ${{ env.LAYER_VERSION_ARN }}
 
-    # - name: Upload Action Run Function
-    #   run: |
-    #      cp aws/funcx-run.py ./lambda_function.py
-    #      zip funcx-run.zip ./lambda_function.py
-    #      rm ./lambda_function.py
-    #      aws lambda update-function-code --function-name funcx-run --zip-file fileb://./funcx-run.zip
-    #      aws lambda wait function-updated --function-name funcx-run
-    #      aws lambda update-function-configuration --function-name funcx-run --layers $LAYER_VERSION_ARN
+    - name: Upload Action Run Function
+      run: |
+         cp aws/funcx-run.py ./lambda_function.py
+         zip funcx-run.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name funcx-run --zip-file fileb://./funcx-run.zip
+         aws lambda update-function-configuration --function-name funcx-run --layers ${{ env.LAYER_VERSION_ARN }}
 
-    # - name: Upload Action Status Function
-    #   run: |
-    #      cp aws/action-status.py ./lambda_function.py
-    #      zip action-status.zip ./lambda_function.py
-    #      rm ./lambda_function.py
-    #      aws lambda update-function-code --function-name action_status --zip-file fileb://./action-status.zip
-    #      aws lambda wait function-updated --function-name action_status
-    #      aws lambda update-function-configuration --function-name action_status --layers $LAYER_VERSION_ARN
+    - name: Upload Action Status Function
+      run: |
+         cp aws/action-status.py ./lambda_function.py
+         zip action-status.zip ./lambda_function.py
+         rm ./lambda_function.py
+         aws lambda update-function-code --function-name action_status --zip-file fileb://./action-status.zip
+         aws lambda update-function-configuration --function-name action_status --layers ${{ env.LAYER_VERSION_ARN }}
 
