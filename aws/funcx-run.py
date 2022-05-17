@@ -19,9 +19,11 @@ def lambda_handler(event, context):
     openid_auth = AccessTokenAuthorizer(
         event['requestContext']['authorizer']['openid_token'])
 
+    user_id = event['requestContext']['authorizer']['user_id']
+
     FuncXClient.TOKEN_DIR = '/tmp'
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
-                      openid_authorizer=openid_auth,
+                      openid_authorizer=openid_auth, task_group_id=user_id,
                       use_offprocess_checker=False)
 
     dynamodb = boto3.resource('dynamodb')
