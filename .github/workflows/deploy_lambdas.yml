@@ -57,7 +57,6 @@ jobs:
          zip funcx-globus-auth.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name funcx-globus-auth --zip-file fileb://./funcx-globus-auth.zip
-         aws lambda update-function-configuration --function-name funcx-globus-auth --layers $LAYER_VERSION_ARN
 
     - name: Upload Action Introspect Function
       run: |
