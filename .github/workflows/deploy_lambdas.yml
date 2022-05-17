@@ -49,8 +49,8 @@ jobs:
          aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 python3.8 > layer_info.json
          cat layer_info.json
          LAYER_VERSION=$(jq ".Version" layer_info.json)
-         export LAYER_VERSION_ARN=$(jq ".LayerVersionArn" layer_info.json)
-         echo "::set-env name=LAYER_VERSION_ARN::$LAYER_VERSION_ARN"
+         LAYER_VERSION_ARN=$(jq ".LayerVersionArn" layer_info.json)
+         echo "LAYER_VERSION_ARN=$LAYER_VERSION_ARN" >> $GITHUB_ENV
 
     # - name: Upload Globus Auth Function
     #   run: |
@@ -67,8 +67,8 @@ jobs:
          aws lambda update-function-code --function-name action_introspect --zip-file fileb://./action_introspect.zip
          aws lambda wait function-updated --function-name action_introspect > wait.json
          cat wait.json
-         echo $LAYER_VERSION_ARN
-         aws lambda update-function-configuration --function-name action_introspect --layers $LAYER_VERSION_ARN > update_info.json
+         echo ${{ env.action_state }}
+         aws lambda update-function-configuration --function-name action_introspect --layers ${{ env.action_state }} > update_info.json
          cat update_info.json
 
     # - name: Upload Action Run Function
