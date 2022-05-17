@@ -49,7 +49,8 @@ jobs:
          aws lambda publish-layer-version --layer-name FuncxLayer --zip-file fileb://./funcxLayer.zip --compatible-runtimes python3.6 python3.7 python3.8 > layer_info.json
          cat layer_info.json
          LAYER_VERSION=$(jq ".Version" layer_info.json)
-         LAYER_VERSION_ARN=$(jq ".LayerVersionArn" layer_info.json)
+         export LAYER_VERSION_ARN=$(jq ".LayerVersionArn" layer_info.json)
+         echo "::set-env name=LAYER_VERSION_ARN::$LAYER_VERSION_ARN"
 
     # - name: Upload Globus Auth Function
     #   run: |
