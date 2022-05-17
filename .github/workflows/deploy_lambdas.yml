@@ -64,8 +64,10 @@ jobs:
          zip action_introspect.zip ./lambda_function.py
          rm ./lambda_function.py
          aws lambda update-function-code --function-name action_introspect --zip-file fileb://./action_introspect.zip
-         aws lambda wait function-updated --function-name action_introspect
-         aws lambda update-function-configuration --function-name action_introspect --layers $LAYER_VERSION_ARN
+         aws lambda wait function-updated --function-name action_introspect > wait.json
+         cat wait.json
+         aws lambda update-function-configuration --function-name action_introspect --layers $LAYER_VERSION_ARN > update_info.json
+         cat update_info.json
 
     - name: Upload Action Run Function
       run: |
