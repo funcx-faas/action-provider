@@ -67,8 +67,8 @@ jobs:
          aws lambda update-function-code --function-name action_introspect --zip-file fileb://./action_introspect.zip
          aws lambda wait function-updated --function-name action_introspect > wait.json
          cat wait.json
-         echo ${{ env.action_state }}
-         aws lambda update-function-configuration --function-name action_introspect --layers ${{ env.action_state }} > update_info.json
+         echo ${{ env.LAYER_VERSION_ARN }}
+         aws lambda update-function-configuration --function-name action_introspect --layers ${{ env.LAYER_VERSION_ARN }} > update_info.json
          cat update_info.json
 
     # - name: Upload Action Run Function
