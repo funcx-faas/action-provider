@@ -94,7 +94,8 @@ def lambda_handler(event, context):
             print("FAILED ", failure)
             status = "FAILED"
             display_status = "Function Failed"
-        else:
+        
+        if not completed:
             status = "ACTIVE"
             display_status = "Function Active"
             details = None
