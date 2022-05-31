@@ -72,12 +72,15 @@ def lambda_handler(event, context):
 
     # Create a dynamo record where the primary key is this action's ID
     # Tasks is a dict by task_id and contains the eventual results from their
-    # execution. Where there are no more None results then the action is complete
+    # execution. Where there are no more None results then the action is complete.
+    # Set a TTL for two weeks from now.
+    
     if batch_res:
         response = table.put_item(
             Item={
                 'action-id': action_id,
-                'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res})
+                'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res}),
+                'ttl': int(datetime.datetime.now().timestamp()) + 1209600 
             }
         )
         print("Dynamo", response)

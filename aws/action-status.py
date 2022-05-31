@@ -1,6 +1,7 @@
 import json
 import boto3
 import decimal
+import datetime
 import traceback
 
 from boto3.dynamodb.conditions import Key
@@ -82,9 +83,10 @@ def lambda_handler(event, context):
             Key={
                 'action-id': action_id
             },
-            UpdateExpression="set tasks=:t",
+            UpdateExpression="set tasks=:t, ttl=:l",
             ExpressionAttributeValues={
-                ':t': json.dumps(task_results, cls=DecimalEncoder)
+                ':t': json.dumps(task_results, cls=DecimalEncoder),
+                ':l': int(datetime.datetime.now().timestamp()) + 1209600 
             },
             ReturnValues="UPDATED_NEW"
         )
