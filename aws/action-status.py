@@ -83,7 +83,7 @@ def lambda_handler(event, context):
             Key={
                 'action-id': action_id
             },
-            UpdateExpression="set tasks=:t, ttl=:l",
+            UpdateExpression="set tasks=:t, fx_ttl=:l",
             ExpressionAttributeValues={
                 ':t': json.dumps(task_results, cls=DecimalEncoder),
                 ':l': int(datetime.datetime.now().timestamp()) + 1209600 

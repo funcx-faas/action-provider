@@ -80,7 +80,7 @@ def lambda_handler(event, context):
             Item={
                 'action-id': action_id,
                 'tasks': json.dumps({task_id: {"result": None, "completed": False} for task_id in batch_res}),
-                'ttl': int(datetime.datetime.now().timestamp()) + 1209600 
+                'fx_ttl': int(datetime.datetime.now().timestamp()) + 1209600 
             }
         )
         print("Dynamo", response)
