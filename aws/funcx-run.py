@@ -25,7 +25,7 @@ def lambda_handler(event, context):
 
     home_dir = '/tmp/funcx'
 
-    tokenstore._home = lambda: pathlib.PurePath(home_dir)
+    tokenstore._home = lambda: pathlib.Path(home_dir)
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
                       openid_authorizer=openid_auth, task_group_id=user_id,
                       use_offprocess_checker=False, funcx_home=home_dir)
