@@ -10,7 +10,8 @@ from funcx.sdk.client import FuncXClient
 from funcx.utils.errors import TaskPending
 
 from funcx.sdk import VERSION as SDK_VERSION
-
+import pathlib
+from funcx.sdk.login_manager import tokenstore
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -35,6 +36,7 @@ def lambda_handler(event, context):
     user_id = event['requestContext']['authorizer']['user_id']
 
     home_dir = '/tmp/funcx'
+    tokenstore._home = lambda: pathlib.PurePath(home_dir)
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
                       openid_authorizer=openid_auth, task_group_id=user_id,
                       use_offprocess_checker=False, funcx_home=home_dir)

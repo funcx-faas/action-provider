@@ -4,6 +4,8 @@ from globus_sdk import AccessTokenAuthorizer
 import boto3
 import uuid
 import datetime
+import pathlib
+from funcx.sdk.login_manager import tokenstore
 
 
 def now_isoformat():
@@ -22,6 +24,8 @@ def lambda_handler(event, context):
     user_id = event['requestContext']['authorizer']['user_id']
 
     home_dir = '/tmp/funcx'
+
+    tokenstore._home = lambda: pathlib.PurePath(home_dir)
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
                       openid_authorizer=openid_auth, task_group_id=user_id,
                       use_offprocess_checker=False, funcx_home=home_dir)
