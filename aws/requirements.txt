@@ -1,4 +1,4 @@
 globus-sdk>=3.0.0
-funcx==0.3.9
-funcx-endpoint==0.3.9
+funcx>=1.0.0
+funcx-endpoint>=1.0.0
 globus_automate_client
