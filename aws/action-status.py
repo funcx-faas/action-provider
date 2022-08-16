@@ -34,10 +34,10 @@ def lambda_handler(event, context):
 
     user_id = event['requestContext']['authorizer']['user_id']
 
-    FuncXClient.TOKEN_DIR = '/tmp'
+    home_dir = '/tmp/funcx'
     fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
                       openid_authorizer=openid_auth, task_group_id=user_id,
-                      use_offprocess_checker=False)
+                      use_offprocess_checker=False, funcx_home=home_dir)
 
     action_id = event['pathParameters']['action-id']
 
