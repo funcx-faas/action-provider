@@ -3,6 +3,7 @@ import boto3
 import decimal
 import datetime
 import traceback
+import globus_sdk
 
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer

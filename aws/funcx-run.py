@@ -5,6 +5,7 @@ import boto3
 import uuid
 import datetime
 import pathlib
+import globus_sdk
 from funcx.sdk.login_manager import tokenstore, LoginManager
 
 
