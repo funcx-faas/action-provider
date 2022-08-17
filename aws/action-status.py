@@ -6,6 +6,7 @@ import traceback
 
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
+import globus_sdk
 from funcx.sdk.client import FuncXClient
 from funcx.utils.errors import TaskPending
 
@@ -50,7 +51,7 @@ def lambda_handler(event, context):
 
     home_dir = '/tmp/funcx'
     tokenstore._home = lambda: pathlib.Path(home_dir)
-    
+
     fxmanager = fxLoginManager(authorizers={'funcx_service': auth, 
                                             'search.api.globus.org/all': search_auth, 
                                             'openid': openid_auth})
