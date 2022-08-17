@@ -8,7 +8,14 @@ import globus_sdk
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
 from funcx.sdk.client import FuncXClient
-from funcx.utils.errors import TaskPending
+# from funcx.utils.errors import TaskPending
+
+from funcx.errors import (
+    FuncxTaskExecutionFailed,
+    SerializationError,
+    TaskPending,
+    handle_response_errors,
+)
 
 from funcx.sdk import VERSION as SDK_VERSION
 import pathlib
