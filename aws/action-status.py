@@ -5,19 +5,32 @@ import datetime
 import traceback
 
 from boto3.dynamodb.conditions import Key
-from globus_sdk import AccessTokenAuthorizer
+from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
 from funcx.sdk.client import FuncXClient
 from funcx.utils.errors import TaskPending
 
 from funcx.sdk import VERSION as SDK_VERSION
 import pathlib
-from funcx.sdk.login_manager import tokenstore
+from funcx.sdk.login_manager import tokenstore, LoginManager
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, decimal.Decimal):
             return int(obj)
         return super(DecimalEncoder, self).default(obj)
+
+
+class fxLoginManager(LoginManager):
+    def __init__(self, authorizers, environment=None):
+            self.authorizers = authorizers
+            home_dir = '/tmp/funcx'
+            tokenstore._home = lambda: pathlib.Path(home_dir)
+            self._token_storage = tokenstore.get_token_storage_adapter(environment=environment)
+        
+    def _get_authorizer(
+        self, resource_server: str
+    ) -> globus_sdk.RefreshTokenAuthorizer:
+        return self.authorizers[resource_server]
 
 
 def lambda_handler(event, context):
@@ -37,8 +50,12 @@ def lambda_handler(event, context):
 
     home_dir = '/tmp/funcx'
     tokenstore._home = lambda: pathlib.Path(home_dir)
-    fxc = FuncXClient(fx_authorizer=auth, search_authorizer=search_auth,
-                      openid_authorizer=openid_auth, task_group_id=user_id,
+    
+    fxmanager = fxLoginManager(authorizers={'funcx_service': auth, 
+                                            'search.api.globus.org/all': search_auth, 
+                                            'openid': openid_auth})
+
+    fxc = FuncXClient(login_manager=fxmanager, task_group_id=user_id,
                       use_offprocess_checker=False, funcx_home=home_dir)
 
     action_id = event['pathParameters']['action-id']
