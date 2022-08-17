@@ -8,7 +8,6 @@ import globus_sdk
 from boto3.dynamodb.conditions import Key
 from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
 from funcx.sdk.client import FuncXClient
-# from funcx.utils.errors import TaskPending
 
 from funcx.errors import (
     FuncxTaskExecutionFailed,
@@ -17,7 +16,7 @@ from funcx.errors import (
     handle_response_errors,
 )
 
-from funcx.sdk import VERSION as SDK_VERSION
+from funcx.version import __version__
 import pathlib
 from funcx.sdk.login_manager import tokenstore, LoginManager
 
@@ -42,7 +41,7 @@ class fxLoginManager(LoginManager):
 
 
 def lambda_handler(event, context):
-    print("---->", SDK_VERSION)
+    print("---->", __version__)
 
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('funcx-actions')
