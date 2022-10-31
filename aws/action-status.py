@@ -85,6 +85,7 @@ def lambda_handler(event, context):
 
     status = "SUCCEEDED"
     display_status = "Function Results Received"
+    details = None
 
     failure = None
     if running_tasks:
@@ -126,7 +127,7 @@ def lambda_handler(event, context):
         if not completed:
             status = "ACTIVE"
             display_status = "Function Active"
-            details = None
+            
 
     # Now check again to see if everything is done
     running_tasks = list(filter(lambda task_id: bool(task_id),
