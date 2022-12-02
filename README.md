@@ -1,2 +1,4 @@
 # action-provider
-Globus Automate Action Provider
+FuncX Action Provider for Globus Automate
+
+TBD

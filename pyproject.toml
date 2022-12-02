@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "funcx-action-provider"
+version = "0.1"
+description = "FuncX Action Provider Using action-provider-tools"
+authors = ["The FuncX Team"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+types-requests = "^2.25.6"
+globus-action-provider-tools = "0.11.5"
+funcx = ">=1.0.5"
+logging3 = "^0.0.2"
+DateTime = "^4.5"
+arrow = "^1.2.2"
+typer = {extras = ["all"], version = "^0.4.1"}
+typing-extensions = "^4.1.1"
+pytest = "^7.1.2"
+structlog = "^21.1.0"
+Flask = "^2.2.2"
+pytz = "*"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
