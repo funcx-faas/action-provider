@@ -26,15 +26,7 @@ from provider.config import FXConfig
 from provider.schema import FuncXDirectorySchema
 from util import FXUtil
 
-ap_description = ActionProviderDescription(
-    globus_auth_scope="",            # TODO Update
-    admin_contact="lei@globus.org",  # TODO Update with Team contact
-    title="FuncX Execution",
-    subtitle="Run remote FuncX compute tasks on target endpoint",
-    synchronous=True,
-    input_schema=FuncXDirectorySchema,
-    log_supported=False,
-)
+ap_description = ActionProviderDescription(**FXConfig.BP_CONFIG)
 
 provider_bp = ActionProviderBlueprint(
     name="funcx_ap",
@@ -183,11 +175,13 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     app.config["CLIENT_ID"] = config["globus_auth_client_id"]
     app.config["CLIENT_SECRET"] = config["globus_auth_client_secret"]
 
-    ap_description.globus_auth_scope = config["globus_auth_scope"]
-    ap_description.visible_to = config["visible_to"]
-    ap_description.runnable_by = config["runnable_by"]
-    ap_description.admin_contact = config["admin_contact"]
-    ap_description.administered_by = config["administered_by"]
+    ap_description.input_schema = FuncXDirectorySchema
+
+    # ap_description.globus_auth_scope = config["globus_auth_scope"]
+    # ap_description.visible_to = config["visible_to"]
+    # ap_description.runnable_by = config["runnable_by"]
+    # ap_description.admin_contact = config["admin_contact"]
+    # ap_description.administered_by = config["administered_by"]
 
     app.register_blueprint(provider_bp)
 
