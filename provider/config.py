@@ -35,6 +35,34 @@ class FXConfig:
         "log_supported": False,
     }
 
+    INPUT_SCHEMA = {
+        "additionalProperties": False,
+        "properties": {
+            "tasks": {
+                "description": "List of tasks to invoke",
+                "items": {
+                    "additionalProperties": False,
+                    "properties": {
+                        "endpoint": {
+                            "description": "UUID of Endpoint where the function is to be run",
+                            "type": "string"
+                        },
+                        "function": {
+                            "description": "UUID of the function to be run",
+                            "type": "string"
+                        },
+                        "payload": {
+                            "description": "Arguments to function",
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+
+        },
+        "type": "object"
+    }
+
     ERR_MISSING_INPUT = ("endpoint_uuid and At least one function_uuid must "
                          "be provided")
     ERR_INVALID_ENDPOINT = "Unknown FuncX Endpoint UUID:  ({ep_id})"

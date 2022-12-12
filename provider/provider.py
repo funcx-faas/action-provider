@@ -22,11 +22,16 @@ from globus_action_provider_tools.data_types import (
 from globus_action_provider_tools.flask.apt_blueprint import ActionProviderBlueprint
 from globus_action_provider_tools.flask.exceptions import ActionConflict, ActionNotFound
 
-from provider.config import FXConfig
-from provider.schema import FuncXDirectorySchema
-from util import FXUtil
+from .config import FXConfig
+from .util import FXUtil
 
-ap_description = ActionProviderDescription(**FXConfig.BP_CONFIG)
+ap_description = ActionProviderDescription(
+    title=FXConfig.BP_CONFIG.get("title"),
+    globus_auth_scope=FXConfig.BP_CONFIG.get("globus_auth_scope"),
+    admin_contact=FXConfig.BP_CONFIG.get("globus_auth_scope"),
+    synchronous=FXConfig.BP_CONFIG.get("synchronous"),
+    input_schema=FXConfig.INPUT_SCHEMA,
+)
 
 provider_bp = ActionProviderBlueprint(
     name="funcx_ap",
@@ -159,29 +164,20 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
         config["globus_auth_client_id"] = env_client_id
         # TODO figure out why _name is used in auth client_id checking
         config["globus_auth_client_name"] = env_client_id
-    else:
+    elif not config.get("globus_auth_client_id"):
         raise EnvironmentError(f"{FXConfig.CLIENT_ID_ENV} needs to be set")
 
     if env_client_secret:
         config["globus_auth_client_secret"] = env_client_secret
-    else:
+    elif not config.get("globus_auth_client_secret"):
         raise EnvironmentError(f"{FXConfig.CLIENT_SECRET_ENV} needs to be set")
 
     provider_bp.url_prefix = config["url_prefix"]
 
-    # TODO change to _name
     provider_bp.globus_auth_client_name = config["globus_auth_client_id"]
 
     app.config["CLIENT_ID"] = config["globus_auth_client_id"]
     app.config["CLIENT_SECRET"] = config["globus_auth_client_secret"]
-
-    ap_description.input_schema = FuncXDirectorySchema
-
-    # ap_description.globus_auth_scope = config["globus_auth_scope"]
-    # ap_description.visible_to = config["visible_to"]
-    # ap_description.runnable_by = config["runnable_by"]
-    # ap_description.admin_contact = config["admin_contact"]
-    # ap_description.administered_by = config["administered_by"]
 
     app.register_blueprint(provider_bp)
 
