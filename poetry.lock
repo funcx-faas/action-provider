@@ -33,7 +33,7 @@ python-versions = "~=3.5"
 
 [[package]]
 name = "certifi"
-version = "2022.9.24"
+version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
@@ -112,6 +112,17 @@ pytz = "*"
 "zope.interface" = "*"
 
 [[package]]
+name = "dill"
+version = "0.3.5.1"
+description = "serialize all of python"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*"
+
+[package.extras]
+graph = ["objgraph (>=1.7.2)"]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.0.4"
 description = "Backport of PEP 654 (exception groups)"
@@ -142,17 +153,56 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "funcx"
+version = "1.0.6"
+description = "funcX: High Performance Function Serving for Science"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+dill = "0.3.5.1"
+funcx-common = "0.0.20"
+globus-sdk = ">=3.14.0,<4"
+packaging = ">=21.1"
+pika = ">=1.2"
+requests = ">=2.20.0"
+tblib = "1.7.0"
+websockets = "10.3"
+
+[package.extras]
+dev = ["flake8 (==3.8.0)", "pytest (>=7.2)", "pytest-mock", "coverage", "responses", "pre-commit"]
+docs = ["sphinx (<5)", "furo (==2021.09.08)"]
+test = ["flake8 (==3.8.0)", "pytest (>=7.2)", "pytest-mock", "coverage", "responses"]
+
+[[package]]
+name = "funcx-common"
+version = "0.0.20"
+description = "Common tools for funcX projects"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pydantic = ">=1,<2"
+
+[package.extras]
+boto3 = ["boto3 (>=1.19.0)"]
+dev = ["pytest (<8)", "pytest-cov (<4)", "pytest-xdist (<3)", "types-redis"]
+moto = ["moto[s3] (<4)"]
+redis = ["redis (>=3.5.3,<5)"]
+
+[[package]]
 name = "globus-action-provider-tools"
-version = "0.11.5"
+version = "0.12.0"
 description = "Tools to help developers build services that implement the Action Provider specification."
 category = "main"
 optional = false
 python-versions = ">=3.6.2,<4.0.0"
 
 [package.dependencies]
-arrow = ">=1,<2"
 cachetools = ">=4.2.4,<5.0.0"
-globus-sdk = ">=2,<3"
+globus-sdk = ">=3.3.0,<4.0.0"
 isodate = ">=0.6.0,<0.7.0"
 jsonschema = ">=3,<4"
 pybase62 = ">=0.4.0,<0.5.0"
@@ -164,18 +214,20 @@ flask = ["flask (>=1,<2)"]
 
 [[package]]
 name = "globus-sdk"
-version = "2.0.3"
+version = "3.15.0"
 description = "Globus SDK for Python"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-pyjwt = {version = ">=1.5.3,<2.0.0", extras = ["crypto"]}
-requests = ">=2.9.2,<3.0.0"
+cryptography = ">=3.3.1,<3.4.0 || >3.4.0"
+pyjwt = {version = ">=2.0.0,<3.0.0", extras = ["crypto"]}
+requests = ">=2.19.1,<3.0.0"
+typing-extensions = {version = ">=4.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-dev = ["tox (>=3.5.3,<4.0)", "flake8 (>=3.0,<4.0)", "isort (>=5.6.4,<6.0)", "black (==20.8b1)", "flake8-bugbear (==20.11.1)", "mypy (==0.800)", "pytest (<7.0)", "pytest-cov (<3.0)", "pytest-xdist (<2.0)", "responses (==0.12.1)", "pyinstaller", "twine (>=3,<4)", "wheel (==0.36.2)", "sphinx (==3.4.3)", "sphinx-material (==0.0.32)"]
+dev = ["pytest (<7)", "coverage (<7)", "pytest-xdist (<3)", "flake8 (<5)", "isort (<6)", "black (==21.12b0)", "flake8-bugbear (==21.11.29)", "sphinx (<5)", "sphinx-issues (<3)", "furo (==2022.1.2)", "responses (==0.17.0)", "responses (==0.21.0)"]
 
 [[package]]
 name = "idna"
@@ -277,14 +329,24 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "packaging"
-version = "21.3"
+version = "22.0"
 description = "Core utilities for Python packages"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
-[package.dependencies]
-pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
+[[package]]
+name = "pika"
+version = "1.3.1"
+description = "Pika Python AMQP Client Library"
+category = "main"
+optional = false
+python-versions = ">=3.4"
+
+[package.extras]
+twisted = ["twisted"]
+tornado = ["tornado"]
+gevent = ["gevent"]
 
 [[package]]
 name = "pluggy"
@@ -331,30 +393,20 @@ email = ["email-validator (>=1.0.3)"]
 
 [[package]]
 name = "pyjwt"
-version = "1.7.1"
+version = "2.6.0"
 description = "JSON Web Token implementation in Python"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 
 [package.dependencies]
-cryptography = {version = ">=1.4", optional = true, markers = "extra == \"crypto\""}
+cryptography = {version = ">=3.4.0", optional = true, markers = "extra == \"crypto\""}
 
 [package.extras]
-crypto = ["cryptography (>=1.4)"]
-flake8 = ["flake8", "flake8-import-order", "pep8-naming"]
-test = ["pytest (>=4.0.1,<5.0.0)", "pytest-cov (>=2.6.0,<3.0.0)", "pytest-runner (>=4.2,<5.0.0)"]
-
-[[package]]
-name = "pyparsing"
-version = "3.0.9"
-description = "pyparsing module - Classes and methods to define and execute parsing grammars"
-category = "main"
-optional = false
-python-versions = ">=3.6.8"
-
-[package.extras]
-diagrams = ["railroad-diagrams", "jinja2"]
+crypto = ["cryptography (>=3.4.0)"]
+dev = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.4.0)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "pre-commit"]
+docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
+tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pyrsistent"
@@ -459,6 +511,14 @@ docs = ["furo", "sphinx", "sphinx-notfound-page", "sphinxcontrib-mermaid", "twis
 tests = ["coverage", "freezegun (>=0.2.8)", "pretend", "pytest-asyncio", "pytest (>=6.0)", "simplejson"]
 
 [[package]]
+name = "tblib"
+version = "1.7.0"
+description = "Traceback serialization library."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -526,6 +586,14 @@ secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "cer
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
+name = "websockets"
+version = "10.3"
+description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "werkzeug"
 version = "2.2.2"
 description = "The comprehensive WSGI web application library."
@@ -567,7 +635,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "1ca108bf132e72641f6629a57b8eeb75d4a59b47a69ccfa234ccee766f657fcb"
+content-hash = "dfa221c0085bb5bc2aea670938a9659ae9c7b7b435d74fa4d2bc132f6a0f95f3"
 
 [metadata.files]
 arrow = []
@@ -583,8 +651,11 @@ click = [
 colorama = []
 cryptography = []
 datetime = []
+dill = []
 exceptiongroup = []
 flask = []
+funcx = []
+funcx-common = []
 globus-action-provider-tools = []
 globus-sdk = []
 idna = []
@@ -643,10 +714,8 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:46d00d6cfecdde84d40e572d63735ef81423ad31184100411e6e3388d405e247"},
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
 ]
-packaging = [
-    {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
-    {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
-]
+packaging = []
+pika = []
 pluggy = []
 pybase62 = []
 pycparser = [
@@ -655,10 +724,6 @@ pycparser = [
 ]
 pydantic = []
 pyjwt = []
-pyparsing = [
-    {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
-    {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
-]
 pyrsistent = []
 pytest = []
 python-dateutil = [
@@ -704,12 +769,14 @@ six = [
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
 structlog = []
+tblib = []
 tomli = []
 typer = []
 types-requests = []
 types-urllib3 = []
 typing-extensions = []
 urllib3 = []
+websockets = []
 werkzeug = []
 zipp = []
 "zope.interface" = []
