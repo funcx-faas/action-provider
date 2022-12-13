@@ -20,6 +20,9 @@ structlog = "^21.1.0"
 Flask = "^2.2.2"
 pytz = "*"
 
+[tool.poetry.scripts]
+fxap = "app:app"
+
 [tool.poetry.dev-dependencies]
 
 [build-system]

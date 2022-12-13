@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 import os
+from typing import Tuple, Optional
 from uuid import uuid4
 
 from flask import Flask
@@ -27,9 +28,15 @@ from .util import FXUtil
 
 ap_description = ActionProviderDescription(
     title=FXConfig.BP_CONFIG.get("title"),
+    subtitle=FXConfig.BP_CONFIG.get("subtitle"),
     globus_auth_scope=FXConfig.BP_CONFIG.get("globus_auth_scope"),
-    admin_contact=FXConfig.BP_CONFIG.get("globus_auth_scope"),
+    admin_contact=FXConfig.BP_CONFIG.get("admin_contact"),
     synchronous=FXConfig.BP_CONFIG.get("synchronous"),
+    administered_by=FXConfig.BP_CONFIG.get("administered_by"),
+    runnable_by=FXConfig.BP_CONFIG.get("runnable_by"),
+    visible_to=FXConfig.BP_CONFIG.get("visible_to"),
+    log_supported=FXConfig.BP_CONFIG.get("log_supported"),
+    maximum_deadline=FXConfig.BP_CONFIG.get("maximum_deadline"),
     input_schema=FXConfig.INPUT_SCHEMA,
 )
 
@@ -73,7 +80,7 @@ def _fx_worker(
                 fxc = FuncXClient()
                 funcx_output = fxc.run(endpoint_id=eid, function_id=fid)
         except Exception as e:
-            err = f"Encountered {e} connecting to endpoint {eid}"
+            err = f"Encountered error connecting to endpoint {eid}: {e}"
 
         if err is None:
             action.details = {"funcx_output": funcx_output}
@@ -94,7 +101,18 @@ def _fx_worker(
 
 def get_status_and_request(request_id):
     assert request_id
-    return "Unknown", None  # TODO TBD
+    # Placeholder
+    status = ActionStatus(
+        status=ActionStatusValue.ACTIVE,
+        display_status=ActionStatusValue.ACTIVE,
+        start_time=FXUtil.iso_tz_now(),
+        completion_time=None,
+        creator_id=None,
+        monitor_by=None,
+        manage_by=None,
+        details={},
+    )
+    return status, None
 
 
 def get_status(request_id):
@@ -105,6 +123,43 @@ def get_status(request_id):
 def delete_action(request_id):
     assert request_id
     pass  # TODO
+
+
+def _check_dependent_scope_present(
+    request: ActionRequest, auth: AuthState
+) -> Optional[str]:
+    """return a required dependent scope if it is present in the request,
+    and we cannot get a token for that scope via a dependent grant.
+
+    """
+    required_scope = request.body.get("required_dependent_scope")
+    if required_scope is not None:
+        authorizer = auth.get_authorizer_for_scope(required_scope)
+        if authorizer is None:
+            # Missing the required scope, so return the required scope string
+            return f"{ap_description.globus_auth_scope}[{required_scope}]"
+    return None
+
+
+def _update_action_state(
+    action: ActionStatus, request: ActionRequest, auth: AuthState
+) -> ActionStatus:
+    if action.is_complete():
+        return action
+
+    required_scope = _check_dependent_scope_present(request, auth)
+    if required_scope is not None:
+        action.status = ActionStatusValue.INACTIVE
+        action.details = ActionInactiveDetails(
+            code="ConsentRequired",
+            description=f"Consent is required for scope {required_scope}",
+            required_scope=required_scope,
+        )
+    else:
+        action = _fx_worker(action, request, auth)
+
+    action.display_status = action.status
+    return action
 
 
 @provider_bp.action_status
@@ -122,20 +177,30 @@ def action_status(action_id: str, auth: AuthState):
 
 @provider_bp.action_cancel
 def action_cancel(action_id: str, auth: AuthState):
-    status, request = get_status_and_request(action_id)
-    if status is None:
-        raise ActionNotFound(f"No Action with id {action_id} found")
-    authorize_action_management_or_404(status, auth)
-    if status.is_complete():
-        return status
-    else:
-        status.status = ActionStatusValue.FAILED
-        status.completion_time = FXUtil.iso_tz_now(True)
-        status.display_status = f"Cancelled by {auth.effective_identity}"[:64]
+    raise ActionNotFound(f"Action with id {action_id} could not be cancelled")
+
+
+@provider_bp.action_run
+def run_action(request: ActionRequest, auth: AuthState) -> Tuple[ActionStatus, int]:
+    status = ActionStatus(
+        status=ActionStatusValue.ACTIVE,
+        display_status=ActionStatusValue.ACTIVE,
+        start_time=FXUtil.iso_tz_now(),
+        completion_time=None,
+        creator_id=auth.effective_identity,
+        monitor_by=request.monitor_by,
+        manage_by=request.manage_by,
+        details={},
+    )
+
+    status = _update_action_state(status, request, auth)
+    return status, 202
 
 
 @provider_bp.action_release
 def action_release(action_id: str, auth: AuthState):
+    if action_id != 'abc_123_fake':
+        raise ActionNotFound(f"No Action with id {action_id} found to release")
     action, request = get_status(action_id)
     if action is None:
         raise ActionNotFound(f"No Action with id {action_id} found")

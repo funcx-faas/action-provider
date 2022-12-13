@@ -1,5 +1,5 @@
 from flask import Flask
-from provider import load_funcx_provider
+from provider.provider import load_funcx_provider
 
 
 def create_app(config: dict = None) -> Flask:
