@@ -61,6 +61,8 @@ def fail_action(action: ActionStatus, err: str) -> ActionStatus:
 def _fx_worker(
     action: ActionStatus, request: ActionRequest, auth: AuthState
 ) -> ActionStatus:
+    body = request.body.copy()
+    print(f"Request body: {body}")
     eid = request.body.get("endpoint_uuid")
     fid = request.body.get("function_uuid")
     fn_args_str = request.body.get("function_arguments")
