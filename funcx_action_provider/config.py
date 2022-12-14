@@ -30,7 +30,10 @@ class FXConfig:
         # Test Client
         # "globus_auth_client_name": "c7c96052-d015-4309-9080-681745b6652c@clients.auth.globus.org",
 
-        "globus_auth_scope": "https://auth.globus.org/scopes/c7c96052-d015-4309-9080-681745b6652c/action_all",
+        # Test Client Scope
+        # "globus_auth_scope": "https://auth.globus.org/scopes/c7c96052-d015-4309-9080-681745b6652c/action_all",
+        # Actual
+        "globus_auth_scope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
 
         "maximum_deadline": "P30D",
         # Who can see that this Action Provider is available
