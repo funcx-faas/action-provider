@@ -1,0 +1,33 @@
+{
+    "required": [
+        "funcx_tasks"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "funcx_tasks": {
+            "description": "List of tasks to invoke",
+            "items": {
+                "additionalProperties": false,
+                "properties": {
+                    "endpoint": {
+                        "description": "UUID of Endpoint where the function is to be run",
+                        "type": "string"
+                    },
+                    "function": {
+                        "description": "UUID of the function to be run",
+                        "type": "string"
+                    },
+                    "payload": {
+                        "description": "Arguments to function",
+                        "type": "object"
+                    }
+                }
+            },
+            "type": "object"
+        },
+        "task_count": {
+            "description": "Count of number of tasks",
+            "type": "integer"
+        }
+    }
+}

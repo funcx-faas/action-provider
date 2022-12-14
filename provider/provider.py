@@ -43,7 +43,7 @@ ap_description = ActionProviderDescription(
 provider_bp = ActionProviderBlueprint(
     name="funcx_ap",
     import_name=__name__,
-    url_prefix="",
+    url_prefix="/funcx",
     provider_description=ap_description,
     globus_auth_client_name="",      # TODO Update
 )
@@ -244,8 +244,15 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     app.config["CLIENT_ID"] = config["globus_auth_client_id"]
     app.config["CLIENT_SECRET"] = config["globus_auth_client_secret"]
 
+    print(
+        f"CID({FXUtil.get_start(app.config['CLIENT_ID'], 4)}) "
+        f"CSE({FXUtil.get_start(app.config['CLIENT_SECRET'], 4)})"
+    )
+
     app.register_blueprint(provider_bp)
 
     logger.info("SSH Provider loaded successfully")
 
+    for p in app.url_map.iter_rules():
+        print(f"{p.methods} ---> {p}")
     return app
