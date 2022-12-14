@@ -55,3 +55,6 @@ dmypy.json
 
 # IDE files
 .idea/
+
+# Logs
+logs/

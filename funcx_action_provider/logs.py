@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 import logging
 import logging.config
+
+import flask.wrappers
 import structlog
 import typing as t
 import typing_extensions as te
@@ -49,6 +51,16 @@ def init_logging(
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stderr",
             },
+            "file_handler": {
+                "formatter": log_format
+                if log_format.lower() in ["console", "json"]
+                else "console",
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': 'logs/funcx_action_provider.log',
+                'mode': 'a',
+                'maxBytes': 1048576,
+                'backupCount': 10
+            },
             "null": {
                 "class": "logging.NullHandler",
             },
@@ -56,23 +68,29 @@ def init_logging(
         "loggers": {
             "werkzeug": {"handlers": ["null"], "propagate": False},
             "gunicorn": {
-                "handlers": ["default"],
+                "handlers": ["default", "file_handler"],
                 "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
             "globus_sdk": {
-                "handlers": ["default"],
+                "handlers": ["file_handler"],
                 "level": "WARNING",
                 "propagate": False,
             },
             "globus_action_provider_tools": {
-                "handlers": ["default"],
+                "handlers": ["default", "file_handler"],
                 "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
             "funcx_action_provider": {
-                "handlers": ["default"],
+                "handlers": ["file_handler"],
                 "level": log_level.upper() if log_level else "INFO",
+                "propagate": True,
+            },
+            # Root default logger
+            "": {
+                "handlers": ["default", "file_handler"],
+                "level": "INFO",
                 "propagate": False,
             },
         },
@@ -108,7 +126,6 @@ def set_request_info_for_logging():
     structlog.threadlocal.clear_threadlocal()
     structlog.threadlocal.bind_threadlocal(
         debug_id=debug_id,
-        action_provider=request.blueprint,
         peer=peer,
         request_view=request.endpoint,
         request_method=request.method,
@@ -120,7 +137,7 @@ def set_request_info_for_logging():
     g.debug_id = debug_id
 
 
-def log_request_time(error):
+def log_request_time(response):
     """
     Regardless of if an exception was raised, this will calculate the length of
     time spent in the view and produce one last log with that data.
@@ -128,7 +145,7 @@ def log_request_time(error):
     request_end_time = datetime.now(timezone.utc)
     total_request_time = (request_end_time - g.request_start_time).total_seconds()
     logger.info(
-        "API request complete.",
+        f"{request.path} --> {response.status} in {total_request_time:.2f}s",
         **{
             "request_end_time": str(request_end_time),
             "total_request_time_s": total_request_time,

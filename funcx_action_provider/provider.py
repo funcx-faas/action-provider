@@ -25,6 +25,9 @@ from globus_action_provider_tools.flask.exceptions import ActionConflict, Action
 
 from .config import FXConfig
 from .util import FXUtil
+from .logs import init_logging, log_request_time, set_request_info_for_logging
+
+logger = logging.getLogger(__name__)
 
 ap_description = ActionProviderDescription(
     title=FXConfig.BP_CONFIG.get("title"),
@@ -47,8 +50,6 @@ provider_bp = ActionProviderBlueprint(
     provider_description=ap_description,
     globus_auth_client_name="",      # TODO Update
 )
-
-logger = logging.getLogger(__name__)
 
 
 def fail_action(action: ActionStatus, err: str) -> ActionStatus:
@@ -216,6 +217,15 @@ def action_release(action_id: str, auth: AuthState):
     return action
 
 
+def before_request():
+    set_request_info_for_logging()
+
+
+def after_request(response):
+    log_request_time(response)
+    return response
+
+
 def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     """
     This is the entry point for the Flask blueprint
@@ -239,6 +249,8 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     elif not config.get("globus_auth_client_secret"):
         raise EnvironmentError(f"{FXConfig.CLIENT_SECRET_ENV} needs to be set")
 
+    init_logging()
+
     provider_bp.url_prefix = config["url_prefix"]
 
     provider_bp.globus_auth_client_name = config["globus_auth_client_id"]
@@ -251,9 +263,9 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
         f"CSE({FXUtil.get_start(app.config['CLIENT_SECRET'], 4)})"
     )
 
+    provider_bp.before_request(before_request)
+    provider_bp.after_request(after_request)
     app.register_blueprint(provider_bp)
-
-    logger.info("SSH Provider loaded successfully")
 
     for p in app.url_map.iter_rules():
         print(f"{p.methods} ---> {p}")
