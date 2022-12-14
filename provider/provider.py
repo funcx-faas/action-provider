@@ -43,7 +43,7 @@ ap_description = ActionProviderDescription(
 provider_bp = ActionProviderBlueprint(
     name="funcx_ap",
     import_name=__name__,
-    url_prefix="/funcx",
+    url_prefix="/",
     provider_description=ap_description,
     globus_auth_client_name="",      # TODO Update
 )
