@@ -220,8 +220,8 @@ def action_release(action_id: str, auth: AuthState):
 @provider_bp.before_request
 def before_request():
     set_request_info_for_logging()
-    logger.info(f">>>>>1 ({request.path})")
-    print(f">>>>>2 {request.authorization}")
+    logger.info(f">>>>> ({request.path})")
+    print(f">>>>>DELETE ME {request.headers.get('Authorization')[7:]}")
 
 
 @provider_bp.after_request
