@@ -4,7 +4,7 @@ import os
 from typing import Tuple, Optional
 from uuid import uuid4
 
-from flask import Flask
+from flask import Flask, request
 
 from funcx.sdk.client import FuncXClient
 from globus_action_provider_tools import AuthState
@@ -220,6 +220,8 @@ def action_release(action_id: str, auth: AuthState):
 @provider_bp.before_request
 def before_request():
     set_request_info_for_logging()
+    logger.info(f">>>>>1 ({request.path})")
+    print(f">>>>>2 {request.authorization}")
 
 
 @provider_bp.after_request

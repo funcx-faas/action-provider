@@ -74,12 +74,13 @@ def init_logging(
             },
             "globus_sdk": {
                 "handlers": ["file_handler"],
-                "level": "WARNING",
+                "level": "INFO",
                 "propagate": False,
             },
             "globus_action_provider_tools": {
                 "handlers": ["file_handler"],
-                "level": log_level.upper() if log_level else "INFO",
+                "level": "DEBUG",
+                # "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
             "funcx_action_provider": {
@@ -145,7 +146,7 @@ def log_request_time(response):
     request_end_time = datetime.now(timezone.utc)
     request_time = (request_end_time - g.request_start_time).total_seconds()
     logger.info(
-        f"SERVED ({request.path}):({response.status}) in {request_time:.2f}s",
+        f"<<<<< ({request.path}):({response.status}) in {request_time:.2f}s",
         **{
             "request_end_time": str(request_end_time),
             "total_request_time_s": request_time,
