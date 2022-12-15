@@ -217,10 +217,12 @@ def action_release(action_id: str, auth: AuthState):
     return action
 
 
+@provider_bp.before_request
 def before_request():
     set_request_info_for_logging()
 
 
+@provider_bp.after_request
 def after_request(response):
     log_request_time(response)
     return response
@@ -234,15 +236,7 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     if config is None:
         config = FXConfig.BP_CONFIG
 
-    env_client_id = os.getenv(FXConfig.CLIENT_ID_ENV)
     env_client_secret = os.getenv(FXConfig.CLIENT_SECRET_ENV)
-
-    if env_client_id:
-        config["globus_auth_client_id"] = env_client_id
-        # TODO figure out why _name is used in auth client_id checking
-        config["globus_auth_client_name"] = env_client_id
-    elif not config.get("globus_auth_client_id"):
-        raise EnvironmentError(f"{FXConfig.CLIENT_ID_ENV} needs to be set")
 
     if env_client_secret:
         config["globus_auth_client_secret"] = env_client_secret
@@ -258,15 +252,14 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     app.config["CLIENT_ID"] = config["globus_auth_client_id"]
     app.config["CLIENT_SECRET"] = config["globus_auth_client_secret"]
 
-    print(
-        f"CID({FXUtil.get_start(app.config['CLIENT_ID'], 4)}) "
-        f"CSE({FXUtil.get_start(app.config['CLIENT_SECRET'], 4)})"
+    logger.info(
+        f"CID({FXUtil.sanitize(app.config['CLIENT_ID'])}) "
+        f"CSE({FXUtil.sanitize(app.config['CLIENT_SECRET'])})"
     )
 
-    provider_bp.before_request(before_request)
-    provider_bp.after_request(after_request)
     app.register_blueprint(provider_bp)
 
-    for p in app.url_map.iter_rules():
-        print(f"{p.methods} ---> {p}")
+    if FXConfig.LOG_METHODS:
+        for p in app.url_map.iter_rules():
+            print(f"{p.methods} ---> {p}")
     return app

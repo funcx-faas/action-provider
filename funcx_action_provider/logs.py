@@ -68,7 +68,7 @@ def init_logging(
         "loggers": {
             "werkzeug": {"handlers": ["null"], "propagate": False},
             "gunicorn": {
-                "handlers": ["default", "file_handler"],
+                "handlers": ["file_handler"],
                 "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
@@ -78,18 +78,18 @@ def init_logging(
                 "propagate": False,
             },
             "globus_action_provider_tools": {
-                "handlers": ["default", "file_handler"],
+                "handlers": ["file_handler"],
                 "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
             "funcx_action_provider": {
-                "handlers": ["file_handler"],
+                "handlers": ["default", "file_handler"],
                 "level": log_level.upper() if log_level else "INFO",
                 "propagate": True,
             },
             # Root default logger
             "": {
-                "handlers": ["default", "file_handler"],
+                "handlers": ["file_handler"],
                 "level": "INFO",
                 "propagate": False,
             },
@@ -143,11 +143,11 @@ def log_request_time(response):
     time spent in the view and produce one last log with that data.
     """
     request_end_time = datetime.now(timezone.utc)
-    total_request_time = (request_end_time - g.request_start_time).total_seconds()
+    request_time = (request_end_time - g.request_start_time).total_seconds()
     logger.info(
-        f"{request.path} --> {response.status} in {total_request_time:.2f}s",
+        f"SERVED ({request.path}):({response.status}) in {request_time:.2f}s",
         **{
             "request_end_time": str(request_end_time),
-            "total_request_time_s": total_request_time,
+            "total_request_time_s": request_time,
         },
     )

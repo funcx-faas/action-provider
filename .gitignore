@@ -50,6 +50,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# tox
+.tox/
+
 # pyenv
 .python-version
 

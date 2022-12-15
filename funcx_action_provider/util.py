@@ -16,12 +16,12 @@ class FXUtil(object):
         Returns an iso8601 compliant, timezone aware timestamp str.
         """
         if local:
-            return datetime.now(timezone.utc).isoformat()
-        else:
             return datetime.now().astimezone().isoformat()
+        else:
+            return datetime.now(timezone.utc).isoformat()
 
     @staticmethod
-    def get_start(s, max_length=8, replace_line_breaks=False):
+    def get_start(s: str, max_length: int = 8, replace_line_breaks: bool = False):
         """
         :param s: The source str
         :param max_length: How many characters to return, if length exceeds
@@ -29,7 +29,7 @@ class FXUtil(object):
 
         Returns the start of a string, with '...' replacing the rest if
          it is longer than max_length.  Can also replace line breaks for
-         more single line clarity
+         more single line clarity.  Note a line break counts as one char
         """
         if not s:
             return s
@@ -45,6 +45,31 @@ class FXUtil(object):
             return result.replace('\n', line_break_replacement)
         else:
             return result
+
+    @staticmethod
+    def sanitize(s: str, show_max_chars: int = 7):
+        """
+        Obfuscate the input string and only show the last few chars.
+
+        :param s:               Input string
+        :param show_max_chars:  Maximum chars to show, rest replaced with '*'
+        :return:  The obfuscated string
+        """
+        if show_max_chars < 0:
+            raise ValueError("show_max_chars must be non-negative")
+        if len(s) <= show_max_chars:
+            return s
+
+        show = '' if show_max_chars == 0 else s[-show_max_chars:]
+        hidden_length = len(s) - show_max_chars
+
+        # Show at most 3 *s
+        star_chars = '***'
+        if hidden_length == 2:
+            star_chars = '**'
+        elif hidden_length == 1:
+            star_chars = '*'
+        return star_chars + show
 
     @staticmethod
     def verify_uuid(uuid):

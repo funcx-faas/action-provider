@@ -2,9 +2,9 @@ class FXConfig:
     CONNECT_TIMEOUT_SECONDS = 10
     ERROR_READ_BYTES = 10000
     OUTPUT_READ_BYTES = 100000
+    LOG_METHODS = True
 
     # Environment vars that need to be set for the AP Confidential Client
-    CLIENT_ID_ENV = 'FUNCX_AP_CLIENT_ID'
     CLIENT_SECRET_ENV = 'FUNCX_AP_CLIENT_SECRET'
 
     APP_NAME = "funcx_action_provider"
@@ -16,19 +16,19 @@ class FXConfig:
         "python_module": "funcx_action_provider.provider",
         "entry_point": "app",
 
-        # Actual
-        "globus_auth_client_id": "b3db7e59-a6f1-4947-95c2-59d6b7a70f8c",
         # Test Client
         # "globus_auth_client_id": "c7c96052-d015-4309-9080-681745b6652c",
+        # Actual
+        "globus_auth_client_id": "b3db7e59-a6f1-4947-95c2-59d6b7a70f8c",
 
-        "globus_auth_client_secret": "replaced_with_env_CLIENT_SECRET",
         # Test Client
         # "globus_auth_client_secret": "N/A",
+        "globus_auth_client_secret": "replaced_with_env_CLIENT_SECRET",
 
-        # Actual
-        "globus_auth_client_name": "b3db7e59-a6f1-4947-95c2-59d6b7a70f8c@clients.auth.globus.org",
         # Test Client
         # "globus_auth_client_name": "c7c96052-d015-4309-9080-681745b6652c@clients.auth.globus.org",
+        # Actual
+        "globus_auth_client_name": "b3db7e59-a6f1-4947-95c2-59d6b7a70f8c@clients.auth.globus.org",
 
         # Test Client Scope
         # "globus_auth_scope": "https://auth.globus.org/scopes/c7c96052-d015-4309-9080-681745b6652c/action_all",
@@ -36,8 +36,10 @@ class FXConfig:
         "globus_auth_scope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
 
         "maximum_deadline": "P30D",
+
         # Who can see that this Action Provider is available
         "visible_to": [],                    # TODO update with "public"
+
         # Who can use this Action Provider in a flows run
         "runnable_by": [],                   # TODO update
         "administered_by": [],               # TODO update
