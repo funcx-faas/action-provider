@@ -37,6 +37,8 @@ ap_description = ActionProviderDescription(
     synchronous=FXConfig.BP_CONFIG.get("synchronous"),
     administered_by=FXConfig.BP_CONFIG.get("administered_by"),
     runnable_by=FXConfig.BP_CONFIG.get("runnable_by"),
+    manage_by=FXConfig.BP_CONFIG.get("runnable_by"),
+    monitor_by=FXConfig.BP_CONFIG.get("runnable_by"),
     visible_to=FXConfig.BP_CONFIG.get("visible_to"),
     log_supported=FXConfig.BP_CONFIG.get("log_supported"),
     maximum_deadline=FXConfig.BP_CONFIG.get("maximum_deadline"),
@@ -248,7 +250,7 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     elif not config.get("globus_auth_client_secret"):
         raise EnvironmentError(f"{FXConfig.CLIENT_SECRET_ENV} needs to be set")
 
-    init_logging()
+    init_logging(log_level='DEBUG')
 
     provider_bp.url_prefix = config["url_prefix"]
 

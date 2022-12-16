@@ -38,12 +38,12 @@ class FXConfig:
         "maximum_deadline": "P30D",
 
         # Who can see that this Action Provider is available
-        "visible_to": [],                    # TODO update with "public"
+        "visible_to": ["all_authenticated_users"],                    # TODO update with "public"
 
         # Who can use this Action Provider in a flows run
-        "runnable_by": [],                   # TODO update
-        "administered_by": [],               # TODO update
-        "admin_contact": "lei@globus.org",   # TODO update
+        "runnable_by": ["all_authenticated_users"],                   # TODO update
+        "administered_by": ["all_authenticated_users"],               # TODO update
+        "admin_contact": "lei514@gmail.com",   # TODO update
         "PREFERRED_URL_SCHEME": "https",
         "url_prefix": "/",
         "log_supported": False,

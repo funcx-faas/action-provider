@@ -74,13 +74,12 @@ def init_logging(
             },
             "globus_sdk": {
                 "handlers": ["file_handler"],
-                "level": "INFO",
+                "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
             "globus_action_provider_tools": {
                 "handlers": ["file_handler"],
-                "level": "DEBUG",
-                # "level": log_level.upper() if log_level else "INFO",
+                "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
             "funcx_action_provider": {
@@ -91,7 +90,7 @@ def init_logging(
             # Root default logger
             "": {
                 "handlers": ["file_handler"],
-                "level": "INFO",
+                "level": log_level.upper() if log_level else "INFO",
                 "propagate": False,
             },
         },
