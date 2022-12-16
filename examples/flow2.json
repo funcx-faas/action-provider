@@ -1,0 +1,22 @@
+{
+  "Comment": "A flow to execute tasks via FuncX Action Provider",
+  "StartAt": "RunFuncX",
+  "States": {
+    "RunFuncX": {
+      "Type": "Action",
+      "ActionUrl": "https://automate-test.funcx.org/fxap",
+      "ActionScope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
+      "Parameters": {
+        "endpoint.$": "$.endpoint",
+        "function.$": "$.function",
+        "payload.$": "$.payload"
+      },
+      "ResultPath": "$.RunResult",
+      "Next": "EndFuncX"
+    },
+    "EndFuncX": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+}

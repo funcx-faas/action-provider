@@ -227,6 +227,8 @@ def before_request():
     if auth_header:
         auth_header = auth_header[7:]
     print(f">>>>>DELETE ME {auth_header}")
+    if 'POST' == str(request.method):
+        logger.info(f"BODY: ({request.get_data()})")
 
 
 @provider_bp.after_request
