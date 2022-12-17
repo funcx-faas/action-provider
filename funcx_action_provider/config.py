@@ -50,7 +50,7 @@ class FXConfig:
     }
 
     INPUT_SCHEMA = {
-        "additionalProperties": False,
+        "additionalProperties": True,
         "properties": {
             "tasks": {
                 "description": "List of tasks to invoke",

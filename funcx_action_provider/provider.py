@@ -65,10 +65,9 @@ def _fx_worker(
     action: ActionStatus, request: ActionRequest, auth: AuthState
 ) -> ActionStatus:
     body = request.body.copy()
-    print(f"Request body: {body}")
-    eid = request.body.get("endpoint_uuid")
-    fid = request.body.get("function_uuid")
-    fn_args_str = request.body.get("function_arguments")
+    eid = request.body.get("endpoint")
+    fid = request.body.get("function")
+    fn_args_str = request.body.get("payload")
 
     action.status = ActionStatusValue.SUCCEEDED
     start_time = datetime.now()
@@ -83,7 +82,8 @@ def _fx_worker(
                 err = FXConfig.ERR_INVALID_FUNCTION
             else:
                 fxc = FuncXClient()
-                funcx_output = fxc.run(endpoint_id=eid, function_id=fid)
+                result_id = fxc.run(fn_args_str, endpoint_id=eid, function_id=fid)
+                funcx_output = fxc.get_result(result_id)
         except Exception as e:
             err = f"Encountered error connecting to endpoint {eid}: {e}"
 
