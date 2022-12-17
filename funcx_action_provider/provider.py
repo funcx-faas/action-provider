@@ -55,11 +55,14 @@ provider_bp = ActionProviderBlueprint(
 
 
 def fail_action(action: ActionStatus, err: str) -> ActionStatus:
-    error_msg = f"Error: {err}"
     action.status = ActionStatusValue.FAILED
-    action.details = ActionFailedDetails(code="Failed", description=error_msg)
+    action.details = ActionFailedDetails(code="Failed", description=err)
+    logger.warning(err)
     return action
 
+def raise_log(e: Exception) -> None:
+    logger.warning(f"ERROR in action: {e}")
+    raise e
 
 def _fx_worker(
     action: ActionStatus, request: ActionRequest, auth: AuthState
@@ -69,7 +72,8 @@ def _fx_worker(
     fid = request.body.get("function")
     fn_args_str = request.body.get("payload")
 
-    action.status = ActionStatusValue.SUCCEEDED
+    action.status = ActionStatusValue.FAILED
+    action.action_id = "unknown_funcx_task"
     start_time = datetime.now()
     err = None
     funcx_output = None
@@ -84,6 +88,7 @@ def _fx_worker(
                 fxc = FuncXClient()
                 result_id = fxc.run(fn_args_str, endpoint_id=eid, function_id=fid)
                 funcx_output = fxc.get_result(result_id)
+                action.action_id = f"task_{result_id}"
         except Exception as e:
             err = f"Encountered error connecting to endpoint {eid}: {e}"
 
@@ -97,7 +102,10 @@ def _fx_worker(
     if err is None and action.status == ActionStatusValue.SUCCEEDED:
         action.completion_time = FXUtil.iso_tz_now()
         duration = datetime.now() - start_time
-        action.details["execution_time_ms"] = duration.microseconds // 1000
+        duration_ms = duration.microseconds // 1000
+        action.details["execution_time_ms"] = duration_ms
+        logger.info(f"Successfully executed ({FXUtil.get_start(fid, 4)}"
+                    f" on ({FXUtil.get_start(eid, 4)} in {duration_ms}ms")
     else:
         fail_action(action, err)
 
@@ -131,13 +139,13 @@ def delete_action(request_id):
 
 
 def _check_dependent_scope_present(
-    request: ActionRequest, auth: AuthState
+    action_request: ActionRequest, auth: AuthState
 ) -> Optional[str]:
     """return a required dependent scope if it is present in the request,
     and we cannot get a token for that scope via a dependent grant.
 
     """
-    required_scope = request.body.get("required_dependent_scope")
+    required_scope = action_request.body.get("required_dependent_scope")
     if required_scope is not None:
         authorizer = auth.get_authorizer_for_scope(required_scope)
         if authorizer is None:
@@ -147,12 +155,12 @@ def _check_dependent_scope_present(
 
 
 def _update_action_state(
-    action: ActionStatus, request: ActionRequest, auth: AuthState
+    action: ActionStatus, action_request: ActionRequest, auth: AuthState
 ) -> ActionStatus:
     if action.is_complete():
         return action
 
-    required_scope = _check_dependent_scope_present(request, auth)
+    required_scope = _check_dependent_scope_present(action_request, auth)
     if required_scope is not None:
         action.status = ActionStatusValue.INACTIVE
         action.details = ActionInactiveDetails(
@@ -161,7 +169,7 @@ def _update_action_state(
             required_scope=required_scope,
         )
     else:
-        action = _fx_worker(action, request, auth)
+        action = _fx_worker(action, action_request, auth)
 
     action.display_status = action.status
     return action
@@ -169,20 +177,20 @@ def _update_action_state(
 
 @provider_bp.action_status
 def action_status(action_id: str, auth: AuthState):
-    action, request = get_status_and_request(action_id)
+    action, action_request = get_status_and_request(action_id)
     if action:
         authorize_action_access_or_404(action, auth)
 
-        # action = _update_action_state(action, request, auth)
-        # save_action(action, request=request)
+        # action = _update_action_state(action, action_request, auth)
+        # save_action(action, request=action_request)
         return action
     else:
-        raise ActionNotFound(f"No Action with id {action_id} found")
+        raise_log(ActionNotFound(f"No Action ({action_id}) found"))
 
 
 @provider_bp.action_cancel
 def action_cancel(action_id: str, auth: AuthState):
-    raise ActionNotFound(f"Action with id {action_id} could not be cancelled")
+    raise_log(ActionNotFound(f"Action ({action_id}) can not be cancelled"))
 
 
 @provider_bp.action_run
@@ -205,15 +213,15 @@ def run_action(request: ActionRequest, auth: AuthState) -> Tuple[ActionStatus, i
 @provider_bp.action_release
 def action_release(action_id: str, auth: AuthState):
     if action_id != 'abc_123_fake':
-        raise ActionNotFound(f"No Action with id {action_id} found to release")
-    action, request = get_status(action_id)
+        raise_log(ActionNotFound(f"No Action ({action_id}) found to release"))
+    action, req = get_status(action_id)
     if action is None:
-        raise ActionNotFound(f"No Action with id {action_id} found")
+        raise_log(ActionNotFound(f"No Action ({action_id}) found"))
     authorize_action_management_or_404(action, auth)
 
-    # action = _update_action_state(action, request, auth)
+    # action = _update_action_state(action, req, auth)
     if not action.is_complete():
-        raise ActionConflict("Action is not complete")
+        raise_log(ActionConflict("Action is not complete"))
 
     delete_action(action_id)
     return action
@@ -226,9 +234,10 @@ def before_request():
     auth_header = request.headers.get('Authorization')
     if auth_header:
         auth_header = auth_header[7:]
-    print(f">>>>>DELETE ME {auth_header}")
-    if 'POST' == str(request.method):
-        logger.info(f"BODY: ({request.get_data()})")
+    if FXConfig.LOG_SENSITIVE_DATA:
+        print(f">>>>>DELETE ME {auth_header}")
+        if 'POST' == str(request.method):
+            logger.info(f"POST body: ({request.get_data()})")
 
 
 @provider_bp.after_request
@@ -262,13 +271,14 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     app.config["CLIENT_SECRET"] = config["globus_auth_client_secret"]
 
     logger.info(
-        f"CID({FXUtil.sanitize(app.config['CLIENT_ID'])}) "
-        f"CSE({FXUtil.sanitize(app.config['CLIENT_SECRET'])})"
+        f"ClientID({FXUtil.sanitize(app.config['CLIENT_ID'])}) "
+        f"ClientSec({FXUtil.sanitize(app.config['CLIENT_SECRET'])})"
     )
 
     app.register_blueprint(provider_bp)
 
     if FXConfig.LOG_METHODS:
+        print("Supported routes: ")
         for p in app.url_map.iter_rules():
-            print(f"{p.methods} ---> {p}")
+            print(f"    {p} : {p.methods}")
     return app

@@ -2,7 +2,10 @@ class FXConfig:
     CONNECT_TIMEOUT_SECONDS = 10
     ERROR_READ_BYTES = 10000
     OUTPUT_READ_BYTES = 100000
+
+    # Detailed logging TODO turn these off
     LOG_METHODS = True
+    LOG_SENSITIVE_DATA = False
 
     # Environment vars that need to be set for the AP Confidential Client
     CLIENT_SECRET_ENV = 'FUNCX_AP_CLIENT_SECRET'
