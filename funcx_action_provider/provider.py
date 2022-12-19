@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timezone
 import logging
 import os
@@ -60,9 +61,11 @@ def fail_action(action: ActionStatus, err: str) -> ActionStatus:
     logger.warning(err)
     return action
 
+
 def raise_log(e: Exception) -> None:
     logger.warning(f"ERROR in action: {e}")
     raise e
+
 
 def _fx_worker(
     action: ActionStatus, request: ActionRequest, auth: AuthState
@@ -87,15 +90,24 @@ def _fx_worker(
             else:
                 fxc = FuncXClient()
                 result_id = fxc.run(fn_args_str, endpoint_id=eid, function_id=fid)
-                funcx_output = fxc.get_result(result_id)
-                action.action_id = f"task_{result_id}"
+                time.sleep(FXConfig.EXECUTION_WAIT_INTERVAL_MS / 1000)
+                funcx_output = None
+                for _ in range(FXConfig.EXECUTION_LOOP_COUNT):
+                    try:
+                        funcx_output = fxc.get_result(result_id)
+                    except Exception as e:
+                        if 'pending due to received' not in str(e):
+                            raise
+                if funcx_output is None:
+                    err = FXConfig.ERR_TIMED_OUT
+                else:
+                    action.action_id = f"task_{result_id}"
+                    action.status = ActionStatusValue.SUCCEEDED
         except Exception as e:
-            err = f"Encountered error connecting to endpoint {eid}: {e}"
+            err = f"Exception running {fid} on {eid}: {e}"
 
         if err is None:
             action.details = {"funcx_output": funcx_output}
-        else:
-            action.status = ActionStatusValue.FAILED
     else:
         err = FXConfig.ERR_MISSING_INPUT
 
@@ -110,7 +122,6 @@ def _fx_worker(
         fail_action(action, err)
 
     return action
-
 
 def get_status_and_request(request_id):
     assert request_id

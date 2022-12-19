@@ -1,5 +1,9 @@
 class FXConfig:
-    CONNECT_TIMEOUT_SECONDS = 10
+    # ms to wait between checking results
+    EXECUTION_WAIT_INTERVAL_MS = 500
+    # Seconds to wait for function results
+    EXECUTION_LOOP_COUNT = 10
+
     ERROR_READ_BYTES = 10000
     OUTPUT_READ_BYTES = 100000
 
@@ -84,3 +88,5 @@ class FXConfig:
                          "be provided")
     ERR_INVALID_ENDPOINT = "Unknown FuncX Endpoint UUID:  ({ep_id})"
     ERR_INVALID_FUNCTION = "Unknown FuncX Function UUID:  ({fn_id})"
+    ERR_TIMED_OUT = ("Timed out after waiting for %ds waiting for result" %
+                     (EXECUTION_LOOP_COUNT * EXECUTION_LOOP_COUNT // 1000))
