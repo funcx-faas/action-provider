@@ -76,7 +76,7 @@ def _fx_worker(
     fn_args_str = request.body.get("payload")
 
     action.status = ActionStatusValue.FAILED
-    action.action_id = "unknown_funcx_task"
+    action.action_id = FXConfig.UNKNOWN_TASK_ID
     start_time = datetime.now()
     err = None
     funcx_output = None
@@ -90,6 +90,7 @@ def _fx_worker(
             else:
                 fxc = FuncXClient()
                 result_id = fxc.run(fn_args_str, endpoint_id=eid, function_id=fid)
+                task_group = fxc.session_task_group_id
                 time.sleep(FXConfig.EXECUTION_WAIT_INTERVAL_MS / 1000)
                 funcx_output = None
                 for _ in range(FXConfig.EXECUTION_LOOP_COUNT):
@@ -101,13 +102,14 @@ def _fx_worker(
                 if funcx_output is None:
                     err = FXConfig.ERR_TIMED_OUT
                 else:
-                    action.action_id = f"task_{result_id}"
+                    action.action_id = f"tg_{task_group}"
+                    funcx_output = {result_id: funcx_output}
                     action.status = ActionStatusValue.SUCCEEDED
         except Exception as e:
             err = f"Exception running {fid} on {eid}: {e}"
 
         if err is None:
-            action.details = {"funcx_output": funcx_output}
+            action.details = {FXConfig.TASK_OUTPUT: funcx_output}
     else:
         err = FXConfig.ERR_MISSING_INPUT
 
@@ -115,17 +117,21 @@ def _fx_worker(
         action.completion_time = FXUtil.iso_tz_now()
         duration = datetime.now() - start_time
         duration_ms = duration.microseconds // 1000
-        action.details["execution_time_ms"] = duration_ms
-        logger.info(f"Successfully executed ({FXUtil.get_start(fid, 4)}"
-                    f" on ({FXUtil.get_start(eid, 4)} in {duration_ms}ms")
+        action.details["request_time_ms"] = duration_ms
+        logger.info(f"Successfully run of {fid} on {eid} in {duration_ms}ms")
     else:
         fail_action(action, err)
 
     return action
 
-def get_status_and_request(request_id):
-    assert request_id
-    # Placeholder
+
+def get_status_and_request(request_id: str):
+    if request_id.startswith('tg_'):
+        fxc = FuncXClient(task_group_id=request_id[3:])
+
+        klsjadf
+    else:
+        raise_log(ActionNotFound(f"Task group {request_id} not found"))
     status = ActionStatus(
         status=ActionStatusValue.ACTIVE,
         display_status=ActionStatusValue.ACTIVE,
@@ -223,11 +229,11 @@ def run_action(request: ActionRequest, auth: AuthState) -> Tuple[ActionStatus, i
 
 @provider_bp.action_release
 def action_release(action_id: str, auth: AuthState):
-    if action_id != 'abc_123_fake':
-        raise_log(ActionNotFound(f"No Action ({action_id}) found to release"))
+    # if 2 > 1:
+    #     raise_log(ActionNotFound(f"No Action ({action_id}) found"))
     action, req = get_status(action_id)
     if action is None:
-        raise_log(ActionNotFound(f"No Action ({action_id}) found"))
+        raise_log(ActionNotFound(f"Task group ({action_id}) not found"))
     authorize_action_management_or_404(action, auth)
 
     # action = _update_action_state(action, req, auth)
@@ -256,6 +262,21 @@ def after_request(response):
     log_request_time(response)
     return response
 
+def get_funcx_client():
+    # Create authorizers from existing tokens
+    funcx_auth = globus_sdk.AccessTokenAuthorizer(funcx_token)
+    search_auth = globus_sdk.AccessTokenAuthorizer(search_token)
+    openid_auth = globus_sdk.AccessTokenAuthorizer(openid_token)
+
+    # Create a new login manager and use it to create a client
+    funcx_login_manager = FuncXLoginManager(
+        authorizers={FuncXClient.FUNCX_SCOPE: funcx_auth,
+                     SearchScopes.all: search_auth,
+                     AuthScopes.openid: openid_auth}
+    )
+
+    fx = FuncXClient(login_manager=funcx_login_manager)
+
 
 def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     """
@@ -265,12 +286,7 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
     if config is None:
         config = FXConfig.BP_CONFIG
 
-    env_client_secret = os.getenv(FXConfig.CLIENT_SECRET_ENV)
-
-    if env_client_secret:
-        config["globus_auth_client_secret"] = env_client_secret
-    elif not config.get("globus_auth_client_secret"):
-        raise EnvironmentError(f"{FXConfig.CLIENT_SECRET_ENV} needs to be set")
+    config["globus_auth_client_secret"] = FXUtil.get_client_secret()
 
     init_logging(log_level='DEBUG')
 

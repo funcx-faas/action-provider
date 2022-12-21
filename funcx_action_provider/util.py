@@ -1,8 +1,11 @@
+from boto3.session import Session
+from botocore.exceptions import ClientError, NoCredentialsError
 from datetime import timezone, datetime
 import logging
+import os
 import re
 
-from globus_action_provider_tools.data_types import ActionProviderJsonEncoder
+from .config import FXConfig
 
 logger = logging.getLogger(__name__)
 
@@ -88,3 +91,32 @@ class FXUtil(object):
         )
         match = regex.match(uuid)
         return bool(match)
+
+    @staticmethod
+    def get_client_secret() -> str:
+        """Gets the client secret in this order:
+            1) Env variable CLIENT_SECRET_ENV
+            2) AWS secrets key funcx-action-provider-client
+
+        :return: The client secret, raises exception if not found
+        """
+        env_client_secret = os.getenv(FXConfig.CLIENT_SECRET_ENV)
+
+        if env_client_secret:
+            return env_client_secret
+
+        try:
+            client = Session().client(
+                service_name='secretsmanager',
+                region_name=FXConfig.AWS_REGION,
+            )
+            secret_value_response = client.get_secret_value(
+                SecretId=FXConfig.AWS_SECRET_ID
+            )
+            return eval(secret_value_response.get('SecretString'))['secret']
+        except NoCredentialsError as e:
+            raise EnvironmentError(f"AWS credentials error: {e}")
+        except ClientError as e:
+            raise ValueError(f"Could not locate AWS secret: {e}")
+        except Exception as e:
+            raise ValueError(f"Unknown error locating client secret: {e}")

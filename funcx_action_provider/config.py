@@ -12,7 +12,9 @@ class FXConfig:
     LOG_SENSITIVE_DATA = False
 
     # Environment vars that need to be set for the AP Confidential Client
-    CLIENT_SECRET_ENV = 'FUNCX_AP_CLIENT_SECRET'
+    CLIENT_SECRET_ENV = "FUNCX_AP_CLIENT_SECRET"
+    AWS_SECRET_ID = "funcx-action-provider-client"
+    AWS_REGION = "us-east-1"
 
     APP_NAME = "funcx_action_provider"
 
@@ -23,23 +25,9 @@ class FXConfig:
         "python_module": "funcx_action_provider.provider",
         "entry_point": "app",
 
-        # Test Client
-        # "globus_auth_client_id": "c7c96052-d015-4309-9080-681745b6652c",
-        # Actual
         "globus_auth_client_id": "b3db7e59-a6f1-4947-95c2-59d6b7a70f8c",
-
-        # Test Client
-        # "globus_auth_client_secret": "N/A",
         "globus_auth_client_secret": "replaced_with_env_CLIENT_SECRET",
-
-        # Test Client
-        # "globus_auth_client_name": "c7c96052-d015-4309-9080-681745b6652c@clients.auth.globus.org",
-        # Actual
         "globus_auth_client_name": "b3db7e59-a6f1-4947-95c2-59d6b7a70f8c@clients.auth.globus.org",
-
-        # Test Client Scope
-        # "globus_auth_scope": "https://auth.globus.org/scopes/c7c96052-d015-4309-9080-681745b6652c/action_all",
-        # Actual
         "globus_auth_scope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
 
         "maximum_deadline": "P30D",
@@ -57,32 +45,49 @@ class FXConfig:
     }
 
     INPUT_SCHEMA = {
-        "additionalProperties": True,
+        "additionalProperties": False,
         "properties": {
-            "tasks": {
-                "description": "List of tasks to invoke",
+            "request_id": {
+                "description": "ID of Incoming Request from Flows",
+                "type": "string"
+            },
+            "body": {
+                "description": "Body of request",
+                "additionalProperties": False,
                 "items": {
                     "additionalProperties": False,
-                    "properties": {
-                        "endpoint": {
-                            "description": "UUID of Endpoint where the function is to be run",
-                            "type": "string"
-                        },
-                        "function": {
-                            "description": "UUID of the function to be run",
-                            "type": "string"
-                        },
-                        "payload": {
-                            "description": "Arguments to function",
-                            "type": "object"
+                    "tasks": {
+                        "description": "List of tasks to invoke",
+                        "items": {
+                            "additionalProperties": False,
+                            "properties": {
+                                "endpoint": {
+                                    "description": "UUID of Endpoint where the function is to be run",
+                                    "type": "string"
+                                },
+                                "function": {
+                                    "description": "UUID of the function to be run",
+                                    "type": "string"
+                                },
+                                "kwargs": {
+                                    "description": "Keyword arguments to function (dict)",
+                                    "type": "object"
+                                },
+                                "args": {
+                                    "description": "Arguments to function (tuple)",
+                                    "type": "object"
+                                }
+                            }
                         }
                     }
                 }
             }
-
         },
         "type": "object"
     }
+
+    UNKNOWN_TASK_ID = 'unknown_funcx_task'
+    TASK_OUTPUT = "task_output"
 
     ERR_MISSING_INPUT = ("endpoint_uuid and At least one function_uuid must "
                          "be provided")
