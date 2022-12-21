@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 import logging
 import os
 from typing import Tuple, Optional
-from uuid import uuid4
 
 from flask import Flask, request
 
@@ -23,6 +22,7 @@ from globus_action_provider_tools.data_types import (
 )
 from globus_action_provider_tools.flask.apt_blueprint import ActionProviderBlueprint
 from globus_action_provider_tools.flask.exceptions import ActionConflict, ActionNotFound
+import globus_sdk
 
 from .config import FXConfig
 from .util import FXUtil
@@ -262,6 +262,8 @@ def after_request(response):
     log_request_time(response)
     return response
 
+
+"""
 def get_funcx_client():
     # Create authorizers from existing tokens
     funcx_auth = globus_sdk.AccessTokenAuthorizer(funcx_token)
@@ -276,6 +278,7 @@ def get_funcx_client():
     )
 
     fx = FuncXClient(login_manager=funcx_login_manager)
+    """
 
 
 def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
