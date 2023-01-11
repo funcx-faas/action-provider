@@ -161,6 +161,7 @@ def get_status(request_id: str, auth: AuthState) -> ActionStatus:
 
     if request_id.startswith(FXConfig.TG_PREFIX):
         tg_id = request_id[3:]
+        status.action_id = request_id
         fxc = initialize_funcx_client(auth)
         try:
             tg_info = FXUtil.get_task_group_tasks(tg_id)
@@ -275,7 +276,7 @@ def before_request():
     auth_header = request.headers.get('Authorization')
     if auth_header:
         auth_header = auth_header[7:]
-    if FXConfig.LOG_SENSITIVE_DATA:
+    if FXConfig.LOG_TOKEN:
         print(f">>>>>DELETE ME {auth_header}")
         if 'POST' == str(request.method):
             logger.info(f"POST body: ({request.get_data()})")

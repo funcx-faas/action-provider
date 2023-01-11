@@ -10,6 +10,7 @@ class FXConfig:
     # Detailed logging TODO turn these off
     LOG_METHODS = True
     LOG_SENSITIVE_DATA = True
+    LOG_TOKEN = False
 
     USE_TASKGROUP_CACHE = True
     TASKGROUP_FILE = "task_group_cache.json"
