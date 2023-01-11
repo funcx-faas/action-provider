@@ -278,8 +278,8 @@ def before_request():
         auth_header = auth_header[7:]
     if FXConfig.LOG_TOKEN:
         print(f">>>>>DELETE ME {auth_header}")
-        if 'POST' == str(request.method):
-            logger.info(f"POST body: ({request.get_data()})")
+    if FXConfig.LOG_SENSITIVE_DATA and 'POST' == str(request.method):
+        logger.info(f"POST body: ({request.get_data()})")
 
 
 @provider_bp.after_request
