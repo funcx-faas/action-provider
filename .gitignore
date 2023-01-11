@@ -61,3 +61,6 @@ dmypy.json
 
 # Logs
 logs/
+
+# Cache
+task_group_cache.json

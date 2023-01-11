@@ -9,7 +9,12 @@ class FXConfig:
 
     # Detailed logging TODO turn these off
     LOG_METHODS = True
-    LOG_SENSITIVE_DATA = False
+    LOG_SENSITIVE_DATA = True
+
+    USE_TASKGROUP_CACHE = True
+    TASKGROUP_FILE = "task_group_cache.json"
+
+    TG_PREFIX = 'tg_'
 
     # Environment vars that need to be set for the AP Confidential Client
     CLIENT_SECRET_ENV = "FUNCX_AP_CLIENT_SECRET"
@@ -38,14 +43,14 @@ class FXConfig:
         # Who can use this Action Provider in a flows run
         "runnable_by": ["all_authenticated_users"],                   # TODO update
         "administered_by": ["all_authenticated_users"],               # TODO update
-        "admin_contact": "lei514@gmail.com",   # TODO update
+        "admin_contact": "lei@globus.org",   # TODO update
         "PREFERRED_URL_SCHEME": "https",
         "url_prefix": "/",
         "log_supported": False,
     }
 
     INPUT_SCHEMA = {
-        "additionalProperties": False,
+        "additionalProperties": True,
         "properties": {
             "request_id": {
                 "description": "ID of Incoming Request from Flows",
@@ -53,34 +58,8 @@ class FXConfig:
             },
             "body": {
                 "description": "Body of request",
-                "additionalProperties": False,
-                "items": {
-                    "additionalProperties": False,
-                    "tasks": {
-                        "description": "List of tasks to invoke",
-                        "items": {
-                            "additionalProperties": False,
-                            "properties": {
-                                "endpoint": {
-                                    "description": "UUID of Endpoint where the function is to be run",
-                                    "type": "string"
-                                },
-                                "function": {
-                                    "description": "UUID of the function to be run",
-                                    "type": "string"
-                                },
-                                "kwargs": {
-                                    "description": "Keyword arguments to function (dict)",
-                                    "type": "object"
-                                },
-                                "args": {
-                                    "description": "Arguments to function (tuple)",
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
+                "type": "object",
+                "additionalProperties": True,
             }
         },
         "type": "object"
@@ -91,7 +70,6 @@ class FXConfig:
 
     ERR_MISSING_INPUT = ("endpoint_uuid and At least one function_uuid must "
                          "be provided")
-    ERR_INVALID_ENDPOINT = "Unknown FuncX Endpoint UUID:  ({ep_id})"
-    ERR_INVALID_FUNCTION = "Unknown FuncX Function UUID:  ({fn_id})"
     ERR_TIMED_OUT = ("Timed out after waiting for %ds waiting for result" %
                      (EXECUTION_LOOP_COUNT * EXECUTION_LOOP_COUNT // 1000))
+    ERR_TASK = "Error executing task %s: (%s)"

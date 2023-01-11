@@ -1,33 +1,55 @@
 {
-    "required": [
-        "funcx_tasks"
-    ],
-    "additionalProperties": false,
-    "properties": {
-        "funcx_tasks": {
-            "description": "List of tasks to invoke",
-            "items": {
-                "additionalProperties": false,
-                "properties": {
-                    "endpoint": {
-                        "description": "UUID of Endpoint where the function is to be run",
-                        "type": "string"
-                    },
-                    "function": {
-                        "description": "UUID of the function to be run",
-                        "type": "string"
-                    },
-                    "payload": {
-                        "description": "Arguments to function",
-                        "type": "object"
-                    }
-                }
-            },
-            "type": "object"
-        },
-        "task_count": {
-            "description": "Count of number of tasks",
-            "type": "integer"
-        }
+  "type": "object",
+  "required": [
+  ],
+  "properties": {
+    "endpoint": {
+      "type": "string",
+      "description": "The endpoint UUID"
+    },
+    "function": {
+      "type": "string",
+      "description": "The function UUID"
+    },
+    "args": {
+      "type": "string",
+      "description": "args to the task, ie. 123, \"hello world\" or [456, \"my string\"]"
+    },
+    "kwargs": {
+      "type": "string",
+      "description": "kwargs to the task, ie. {\"first\": 123, \"second\": \"my string\"}"
+    },
+    "endpoint_2": {
+      "type": "string",
+      "description": "The endpoint UUID for task 2"
+    },
+    "function_2": {
+      "type": "string",
+      "description": "The function UUID for task 2"
+    },
+    "args_2": {
+      "type": "string",
+      "description": "args to task 2, ie. 123, \"hello mars\" or [456, \"a string\"]"
+    },
+    "kwargs_2": {
+      "type": "string",
+      "description": "kwargs to task 2, ie. {\"first\": \"a string\", \"second\": 234}"
+    },
+    "tasks": {
+      "type": "string",
+      "description": "(Exclusive with above params) Full task inputs consisting of [{'endpoint':'...', 'function':'...', 'args':[...], 'kwargs':{...}}]"
     }
+  },
+  "propertyOrder": [
+    "endpoint",
+    "function",
+    "args",
+    "kwargs",
+    "endpoint_2",
+    "function_2",
+    "args_2",
+    "kwargs_2",
+    "tasks"
+  ],
+  "additionalProperties": true
 }

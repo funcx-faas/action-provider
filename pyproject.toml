@@ -8,7 +8,7 @@ authors = ["The FuncX Team"]
 python = ">=3.8,<4.0"
 types-requests = "^2.25.6"
 globus-action-provider-tools = "0.12.0"
-funcx = ">=1.0.1"
+funcx = {path = "/Users/lei/glob/funcX/funcx_sdk", develop = true}
 funcx_common = ">=0.0.18"
 logging3 = "^0.0.2"
 DateTime = "^4.5"

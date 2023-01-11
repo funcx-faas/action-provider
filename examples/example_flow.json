@@ -7,9 +7,17 @@
       "ActionUrl": "https://automate-test.funcx.org/fxap",
       "ActionScope": "https://auth.globus.org/scopes/b3db7e59-a6f1-4947-95c2-59d6b7a70f8c/action_all",
       "Parameters": {
-        "tasks.$": "$.funcx_tasks",
-        "task_count.$": "$.task_count"
+        "endpoint.$": "$.endpoint",
+        "function.$": "$.function",
+        "args.$": "$.args",
+        "kwargs.$": "$.kwargs",
+        "endpoint_2.$": "$.endpoint_2",
+        "function_2.$": "$.function_2",
+        "args_2.$": "$.args_2",
+        "kwargs_2.$": "$.kwargs_2",
+        "tasks.$": "$.tasks"
       },
+      "ResultPath": "$.RunResult",
       "Next": "EndFuncX"
     },
     "EndFuncX": {
