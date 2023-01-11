@@ -144,6 +144,7 @@ def _fx_worker(action_request: ActionRequest, auth: AuthState) -> ActionStatus:
         action.details = {FXConfig.TASK_OUTPUT: err}
         fail_action(action, err)
 
+    logger.info(f"Action: {action}")
     return action
 
 
