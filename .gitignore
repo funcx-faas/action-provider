@@ -64,3 +64,4 @@ logs/
 
 # Cache
 task_group_cache.json
+test_input.json

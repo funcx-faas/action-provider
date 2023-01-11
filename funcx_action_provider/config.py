@@ -52,17 +52,6 @@ class FXConfig:
 
     INPUT_SCHEMA = {
         "additionalProperties": True,
-        "properties": {
-            "request_id": {
-                "description": "ID of Incoming Request from Flows",
-                "type": "string"
-            },
-            "body": {
-                "description": "Body of request",
-                "type": "object",
-                "additionalProperties": True,
-            }
-        },
         "type": "object"
     }
 
