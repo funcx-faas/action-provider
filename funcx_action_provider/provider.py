@@ -250,15 +250,14 @@ def run_action(
         action_request: ActionRequest,
         auth: AuthState
 ) -> Tuple[ActionStatus, int]:
-    # action = _fx_worker(action, action_request, auth)
-    # status = _update_action_state(status, request, auth)
+    if auth.effective_identity == FXConfig.PRINT_SPECIFIC_TOKEN:
+        print(f">>>>>DELETE ME {auth.bearer_token}")
+
     return _fx_worker(action_request, auth), 202
 
 
 @provider_bp.action_release
 def action_release(action_id: str, auth: AuthState) -> ActionStatus:
-    # if 2 > 1:
-    #     raise_log(ActionNotFound(f"No Action ({action_id}) found"))
     action = get_status(action_id, auth)
     authorize_action_management_or_404(action, auth)
 
@@ -273,11 +272,6 @@ def action_release(action_id: str, auth: AuthState) -> ActionStatus:
 def before_request():
     set_request_info_for_logging()
     logger.info(f">>>>> ({request.path})")
-    auth_header = request.headers.get('Authorization')
-    if auth_header:
-        auth_header = auth_header[7:]
-    if FXConfig.LOG_TOKEN:
-        print(f">>>>>DELETE ME {auth_header}")
     if FXConfig.LOG_SENSITIVE_DATA and 'POST' == str(request.method):
         logger.info(f"POST body: ({request.get_data()})")
 

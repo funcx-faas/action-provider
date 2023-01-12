@@ -60,3 +60,30 @@ class TestUtil:
             assert (curtz[:3] + ':' + curtz[3:]) == time_str[-6:]
         else:
             assert '+00:00' == time_str[-6:]
+
+    @pytest.mark.parametrize(
+        "field_input",
+        [
+            ["1", False, 1, 1, 1],
+            ["2.3", False, 2.3, 1, 2.3],
+            ["411 abc", False, "a", 1, "411 abc"],
+            ['[1,2,"3"]', False, [], 3, 1],
+            ['{"1": 1, "2": 2, "3": 3}', False, dict(), 3, '1'],
+            ["[abc]", True, None, None, None]
+        ])
+    def test_parse_args(self, field_input):
+        input_str, bad_input, input_value, iter_size, first_value = field_input
+        if bad_input:
+            with pytest.raises(ValueError):
+                FXUtil.parse_item_to_list(input_str)
+        else:
+            parsed_value = FXUtil.parse_item_to_list(input_str)
+            first_parsed = next(iter(parsed_value))
+
+            assert iter_size == len(parsed_value)
+            assert first_parsed.__class__ == first_value.__class__
+            assert first_parsed == first_value
+
+
+
+

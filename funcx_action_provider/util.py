@@ -105,6 +105,40 @@ class FXUtil(object):
             raise ValueError(f"Invalid UUID: {uuid}")
 
     @staticmethod
+    def parse_item_to_list(s):
+        """
+        Attempt to parse input value into either a JSON object or a list
+        of objects, accounting for int or float as raw str inputs
+        :param s: Input
+        :return: A list, a list of a single object, or raises ValueError on failure
+        """
+        if isinstance(s, str):
+            # Try our best to parse it as JSON
+            if s[0] != '[' and s[0] != '{':
+                try:
+                    # Assume it's a single value
+                    return [json.loads(s)]
+                except JSONDecodeError:
+                    # Try to stringify it, hoping it has no "s
+                    return [json.loads('"' + s + '"')]
+            else:
+                try:
+                    return json.loads(s)
+                except JSONDecodeError as e:
+                    # If it starts with '[' or '{' then it must conform to JSON
+                    raise ValueError(f"Invalid args provided: {e} ({s})")
+        else:
+            try:
+                # Single item or a JSON structure
+                if isinstance(s, dict):
+                    raise ValueError(f"Args must be a single item or list, not dict")
+                _ = iter(s)  # Check for list or tuple
+                return s
+            except TypeError:
+                # Not a list or tuple, must be int or float
+                return [s]
+
+    @staticmethod
     def init_task_group_cache():
         tg_file = Path(FXConfig.TASKGROUP_FILE)
         if tg_file.is_file():

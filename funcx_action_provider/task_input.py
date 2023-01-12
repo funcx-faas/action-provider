@@ -22,19 +22,12 @@ class TaskInput:
         self.kwargs = {}
 
         if args:
-            if isinstance(args, str):
-                if args[0] != '[':
-                    # Assume it's a tuple, and parse it
-                    args = '[' + args + ']'
-                try:
-                    self.args = json.loads(args)
-                except JSONDecodeError as e:
-                    raise ValueError(f"Invalid args provided: {e}")
-            else:
-                self.args = args
+            self.args = FXUtil.parse_item_to_list(args)
 
         if kwargs:
+            # kwargs is much simpler because it must be a dictionary
             if isinstance(kwargs, str):
+                kwargs = kwargs.strip()
                 if kwargs[0] != '{':
                     raise ValueError("kwargs must be a dict starting with '{'")
                 self.kwargs = json.loads(kwargs)

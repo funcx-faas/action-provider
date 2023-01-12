@@ -10,7 +10,10 @@ class FXConfig:
     # Detailed logging TODO turn these off
     LOG_METHODS = True
     LOG_SENSITIVE_DATA = True
-    LOG_TOKEN = False
+
+    # Set this to None to disable debug printing of auth token
+    # PRINT_SPECIFIC_TOKEN = None
+    PRINT_SPECIFIC_TOKEN = 'urn:globus:auth:identity:3959f743-9323-4fe6-93ef-eca6f9ff05d2'
 
     USE_TASKGROUP_CACHE = True
     TASKGROUP_FILE = "task_group_cache.json"

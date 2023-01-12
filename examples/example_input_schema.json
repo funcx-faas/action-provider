@@ -21,7 +21,7 @@
     },
     "endpoint_2": {
       "type": "string",
-      "description": "The endpoint UUID for task 2"
+      "description": "Optionally, an endpoint UUID for a second task"
     },
     "function_2": {
       "type": "string",
@@ -29,11 +29,11 @@
     },
     "args_2": {
       "type": "string",
-      "description": "args to task 2, ie. 123, \"hello mars\" or [456, \"a string\"]"
+      "description": "args provided to task 2"
     },
     "kwargs_2": {
       "type": "string",
-      "description": "kwargs to task 2, ie. {\"first\": \"a string\", \"second\": 234}"
+      "description": "kwargs to task 2"
     },
     "tasks": {
       "type": "string",

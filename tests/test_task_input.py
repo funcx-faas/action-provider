@@ -69,6 +69,30 @@ class TestTaskInput:
                     ["e2", "f2", 3, 3, 4],
                 ]
             ],
+            [
+                {
+                    "endpoint": "e1",
+                    "function": "f1",
+                    "args": "31x",
+                    "kwargs": None
+                },
+                1,
+                [
+                    ["e1", "f1", 1, 0, "31x"],
+                ]
+            ],
+            [
+                {
+                    "endpoint": "e1",
+                    "function": "f1",
+                    "args": 31.1,
+                    "kwargs": None
+                },
+                1,
+                [
+                    ["e1", "f1", 1, 0, 31.1],
+                ]
+            ],
         ]
     )
     def test_from_request(self, input_values):
