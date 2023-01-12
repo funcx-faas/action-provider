@@ -69,13 +69,13 @@ def init_logging(
             "werkzeug": {"handlers": ["null"], "propagate": False},
             "gunicorn": {
                 "handlers": ["file_handler"],
-                "level": log_level.upper() if log_level else "INFO",
+                "level": "WARNING",
                 "propagate": False,
             },
             "globus_sdk": {
                 "handlers": ["file_handler"],
-                "level": log_level.upper() if log_level else "INFO",
-                "propagate": False,
+                "level": "WARNING",
+                "propagate": True,
             },
             "globus_action_provider_tools": {
                 "handlers": ["file_handler"],

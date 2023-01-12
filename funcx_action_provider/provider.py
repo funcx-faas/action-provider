@@ -292,7 +292,7 @@ def load_funcx_provider(app: Flask, config: dict = None) -> Flask:
 
     config["globus_auth_client_secret"] = FXUtil.get_client_secret()
 
-    init_logging(log_level='DEBUG')
+    init_logging(log_level='INFO')
 
     provider_bp.url_prefix = config["url_prefix"]
 
