@@ -126,7 +126,7 @@ class FXUtil(object):
                     return json.loads(s)
                 except JSONDecodeError as e:
                     # If it starts with '[' or '{' then it must conform to JSON
-                    raise ValueError(f"Invalid args provided: {e} ({s})")
+                    raise ValueError(f"Invalid args provided: {e} ({FXUtil.get_start(s)})")
         else:
             try:
                 # Single item or a JSON structure
