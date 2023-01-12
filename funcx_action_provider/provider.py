@@ -212,7 +212,7 @@ def get_status(request_id: str, auth: AuthState) -> ActionStatus:
 
 def delete_action(request_id):
     if request_id.startswith(FXConfig.TG_PREFIX):
-        FXUtil.delete_task_group(request_id)
+        FXUtil.delete_task_group(request_id[len(FXConfig.TG_PREFIX):])
     else:
         raise_log(BadActionRequest(f"Invalid request id {request_id}"))
 
