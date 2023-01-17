@@ -1,3 +1,5 @@
+from enum import Enum
+
 class FXConfig:
     # ms to wait between checking results
     EXECUTION_WAIT_INTERVAL_MS = 500
@@ -58,11 +60,25 @@ class FXConfig:
         "type": "object"
     }
 
-    UNKNOWN_TASK_ID = 'unknown_funcx_task'
+    UNKNOWN_TASK_GROUP_ID = 'unknown_funcx_task_group'
     TASK_OUTPUT = "task_output"
+    NOT_AVAILABLE = "N/A"
 
     ERR_MISSING_INPUT = ("endpoint_uuid and At least one function_uuid must "
                          "be provided")
     ERR_TIMED_OUT = ("Timed out after waiting for %ds waiting for result" %
                      (EXECUTION_LOOP_COUNT * EXECUTION_LOOP_COUNT // 1000))
-    ERR_TASK = "Error executing task %s: (%s)"
+
+
+# TODO remove below when switching to using fx_common version
+
+class TaskState(str, Enum):
+    AP_RECEIVED = "action-provider-received"
+    AP_TASK_SUBMITTED = "action-provider-task-submitted"
+    AP_TASKGROUP_RUNNING = "action-provider-task-group-in-progress"
+    AP_TASKGROUP_COMPLETED = "action-provider-task-group-completed"
+    AP_TASKGROUP_ERROR = "action-provider-task-group-error"
+
+
+class ActorName(str, Enum):
+    ACTION_PROVIDER = "action-provider"

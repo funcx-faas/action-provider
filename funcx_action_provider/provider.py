@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from flask import g
 import logging
+import time
 from traceback import format_exc
 from typing import Tuple, Optional, Union
 
@@ -12,6 +13,7 @@ from funcx.errors import (
     SerializationError,
     TaskPending,
 )
+# from funcx_common.tasks.constants import TaskState, ActorName
 from globus_action_provider_tools import AuthState
 from globus_action_provider_tools.authorization import (
     authorize_action_access_or_404,
@@ -19,7 +21,6 @@ from globus_action_provider_tools.authorization import (
 )
 from globus_action_provider_tools.data_types import (
     ActionFailedDetails,
-    ActionInactiveDetails,
     ActionProviderDescription,
     ActionRequest,
     ActionStatus,
@@ -35,6 +36,7 @@ from globus_sdk.exc.api import GlobusAPIError
 from globus_sdk.scopes import AuthScopes, SearchScopes
 
 from .config import FXConfig
+from .config import TaskState, ActorName # TODO replace with fx_common version
 from .util import FXUtil
 from .logs import init_logging, log_request_time, set_request_info_for_logging
 from .login_manager import FuncXLoginManager
@@ -80,6 +82,9 @@ def raise_log(e: Exception) -> None:
 
 
 def initialize_funcx_client(auth: AuthState) -> FuncXClient:
+    if hasattr(g, 'funcx_client'):
+        return g.funcx_client
+
     funcx_auth = auth.get_authorizer_for_scope(FuncXClient.FUNCX_SCOPE)
     search_auth = auth.get_authorizer_for_scope(SearchScopes.all)
     openid_auth = auth.get_authorizer_for_scope(AuthScopes.openid)
@@ -108,17 +113,27 @@ def _fx_worker(action_request: ActionRequest, auth: AuthState) -> ActionStatus:
         details={},
     )
     task_inputs = []
+    fxc = initialize_funcx_client(auth)
+    task_group_id = fxc.session_task_group_id
+    user_identity = auth.effective_identity
+
     try:
         req_body = action_request.body
         if FXConfig.LOG_SENSITIVE_DATA:
             logger.info(f"Incoming request: {req_body}")
-        task_inputs = TaskInput.from_request(req_body)
+        task_inputs = TaskInput.from_request(
+            req_body,
+            task_group_id,
+            user_identity
+        )
     except ValueError as e:
         raise_log(BadActionRequest(f"Error parsing input: {e}"))
 
+    for task in task_inputs:
+        logger.info(TaskState.AP_RECEIVED, extra=task.logging_info())
+
     action.status = ActionStatusValue.FAILED
-    action.action_id = FXConfig.UNKNOWN_TASK_ID
-    fxc = initialize_funcx_client(auth)
+    action.action_id = FXConfig.UNKNOWN_TASK_GROUP_ID
     try:
         task_batch = g.funcx_client.create_batch()
         for task in task_inputs:
@@ -128,13 +143,21 @@ def _fx_worker(action_request: ActionRequest, auth: AuthState) -> ActionStatus:
                             f"kwargs ({FXUtil.get_start(str(task.kwargs))})")
             task_batch.add(task.function_id, task.endpoint_id, task.args, task.kwargs)
         result_ids = fxc.batch_run(task_batch)
-        task_group = fxc.session_task_group_id
-        logger.info(f"Submitted task group {g.funcx_client.session_task_group_id} "
-                    f"for {auth.effective_identity}")
-        FXUtil.store_task_group(task_group, result_ids, creator_id)
-        action.action_id = FXConfig.TG_PREFIX + task_group
+        logger.info(f"Submitted task group {task_group_id} for {user_identity}")
+        FXUtil.store_task_group(task_group_id, result_ids, creator_id)
+        action.action_id = FXConfig.TG_PREFIX + task_group_id
         action.status = ActionStatusValue.ACTIVE
         action.details = {FXConfig.TASK_OUTPUT: str(result_ids)}
+
+        if len(result_ids) != len(task_inputs):
+            logger.error(f"Submitted {len(task_inputs)} tasks but received "
+                         f"{len(result_ids)} task_ids")
+        else:
+            # Assuming that the order of task_ids is the same as submission
+            for i in range(len(task_inputs)):
+                task = task_inputs[i]
+                task.task_id = result_ids[i]
+                logger.info(TaskState.AP_TASK_SUBMITTED, extra=task.logging_info())
     except GlobusAPIError as e:
         err = f"Encountered {e.__class__} ({e}) submitting tasks"
         action.details = {FXConfig.TASK_OUTPUT: err}
@@ -144,7 +167,6 @@ def _fx_worker(action_request: ActionRequest, auth: AuthState) -> ActionStatus:
         action.details = {FXConfig.TASK_OUTPUT: err}
         fail_action(action, err)
 
-    logger.info(f"Action: {action}")
     return action
 
 
@@ -189,23 +211,39 @@ def get_status(request_id: str, auth: AuthState) -> ActionStatus:
                     logger.info(err_msg)
                     results[task_id] = format_exc()
                     failed = True
-            if failed:
+
+            extra_logging = {
+                "user_id": auth.effective_identity,
+                "task_id": FXConfig.NOT_AVAILABLE,
+                "task_group_id": tg_id,
+                "function_id": FXConfig.NOT_AVAILABLE,
+                "endpoint_id": FXConfig.NOT_AVAILABLE,
+                "container_id": FXConfig.NOT_AVAILABLE,
+                "actor": ActorName.ACTION_PROVIDER,
+                "state_time": time.time_ns(),
+                "log_type": "task_transition",
+            }
+            if pending:
+                # If still active, Flows will keep calling get_status
+                status.display_status = "Task group still active"
+                logger.info(TaskState.AP_TASKGROUP_RUNNING, extra=extra_logging)
+            elif failed:
                 status.status = ActionStatusValue.FAILED
                 status.display_status = "At least one task failed"
-            elif pending:
-                status.display_status = "Task group still active"
+                logger.info(TaskState.AP_TASKGROUP_ERROR, extra=extra_logging)
             else:
                 status.status = ActionStatusValue.SUCCEEDED
                 status.display_status = "All tasks completed"
                 status.completion_time = FXUtil.iso_tz_now()
+                logger.info(TaskState.AP_TASKGROUP_COMPLETED, extra=extra_logging)
 
             status.details = {
                 'result': results
             }
         except ValueError as e:
-            raise_log(ActionNotFound(f"Task group {request_id} not found: {e}"))
+            raise_log(ActionNotFound(f"Task group {tg_id} not found: {e}"))
     else:
-        raise_log(ActionNotFound(f"Invalid task group {request_id}"))
+        raise_log(ActionNotFound(f"Request ID {request_id} has an invalid prefix"))
 
     return status
 
@@ -215,22 +253,6 @@ def delete_action(request_id):
         FXUtil.delete_task_group(request_id[len(FXConfig.TG_PREFIX):])
     else:
         raise_log(BadActionRequest(f"Invalid request id {request_id}"))
-
-
-def _check_dependent_scope_present(
-    action_request: ActionRequest, auth: AuthState
-) -> Optional[str]:
-    """return a required dependent scope if it is present in the request,
-    and we cannot get a token for that scope via a dependent grant.
-
-    """
-    required_scope = action_request.body.get("required_dependent_scope")
-    if required_scope is not None:
-        authorizer = auth.get_authorizer_for_scope(required_scope)
-        if authorizer is None:
-            # Missing the required scope, so return the required scope string
-            return f"{ap_description.globus_auth_scope}[{required_scope}]"
-    return None
 
 
 @provider_bp.action_status
