@@ -62,8 +62,7 @@ def lambda_handler(event, context):
                                             'search.api.globus.org/all': search_auth, 
                                             'openid': openid_auth})
 
-    fxc = FuncXClient(login_manager=fxmanager, task_group_id=user_id,
-                      use_offprocess_checker=False, funcx_home=home_dir)
+    fxc = FuncXClient(login_manager=fxmanager, funcx_home=home_dir)
 
     action_id = event['pathParameters']['action-id']
 
