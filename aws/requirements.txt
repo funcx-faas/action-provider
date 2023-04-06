@@ -1,0 +1,5 @@
+globus-sdk>=3.0.0
+funcx>=1.0.12
+funcx-endpoint>=1.0.12
+globus_automate_client
+https://thirdparty.aboutcode.org/pypi/cryptography-3.4.8-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
