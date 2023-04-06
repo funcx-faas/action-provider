@@ -77,7 +77,7 @@ def lambda_handler(event, context):
             payload = task.get('payload', None)
             if payload:
                 batch.add(endpoint_id=task['endpoint'], function_id=task['function'],
-                        **task['payload'])
+                        kwargs=task['payload'])
             else:
                 batch.add(endpoint_id=task['endpoint'], function_id=task['function'])
 
