@@ -2,5 +2,4 @@ globus-sdk>=3.0.0
 funcx>=1.0.12
 funcx-endpoint>=1.0.12
 globus_automate_client
-https://files.pythonhosted.org/packages/1e/85/d5b768b45e564a66fc5ba6344145334208f01d64939adcb8c4032545d164/cryptography-39.0.2-pp38-pypy38_pp73-manylinux_2_28_x86_64.whl
-
+cryptography==3.4.8
